@@ -41,7 +41,26 @@ class Menu(Scene):
         self.BtnRect = self.btn_text.get_rect()
         self.BtnRect.center = self.btn.center
 
+    def actions(self):
+        match self.choose:
+            case 1:
+                self.manager.game_state = "dialogue"
+                self.manager.scene = "Bedroom_Day1"
+            case 2:
+                # game saves logic
+                pass
+            case 3:
+                #gallery mechanic
+                pass
+            case 4:
+                # settings logic
+                pass
+            case 5:
+                pygame.quit()
+                sys.exit()
+
     def handle_events(self, event):
+        self.joystick.handle_events(event)
         action_triggered = False
 
         if event.type == pygame.KEYDOWN:
@@ -51,10 +70,10 @@ class Menu(Scene):
             keys = pygame.key.get_pressed()
                 
             if keys[pygame.K_s]:
-                if self.choose < 5: self.choose += 1 
+                if self.choose < len(self.menu_items): self.choose += 1 
                 else: self.choose = 1
             if keys[pygame.K_w]:
-                if self.choose < 2: self.choose = 5
+                if self.choose < 2: self.choose = len(self.menu_items)
                 else: self.choose -= 1
 
         elif event.type == pygame.MOUSEBUTTONDOWN and config.is_mobile:
@@ -62,27 +81,29 @@ class Menu(Scene):
             action_triggered = self.btn.collidepoint(mouse_pos)
 
         if action_triggered:
-            match self.choose:
-                case 1:
-                    self.manager.game_state = "dialogue"
-                    self.manager.scene = "Bedroom_Day1"
-                case 2:
-                    #game saves logic
-                    pass
-                case 3:
-                    #gallery mechanic
-                    pass
-                case 4:
-                    # settings logic
-                    pass
-                case 5:
-                    pygame.quit()
-                    sys.exit()
+            self.actions()
 
     def update(self):
         super().update()
 
         self.joystick.update()
+        if not hasattr(self, 'joy_ready'):
+            self.joy_ready = True
+    
+        joy_y = config.joystick_vector[1]
+    
+        if joy_y > 0.5 and self.joy_ready:
+            if self.choose < len(self.menu_items): self.choose += 1
+            else: self.choose = 1
+            self.joy_ready = False
+    
+        elif joy_y < -0.5 and self.joy_ready:
+            if self.choose < 2: self.choose = len(self.menu_items)
+            else: self.choose -= 1
+            self.joy_ready = False
+    
+        elif abs(joy_y) < 0.2:
+            self.joy_ready = True
 
     def draw(self):
         self.screen.blit(self.bg, (0, 0))
@@ -111,6 +132,6 @@ class Menu(Scene):
 
         if config.is_mobile:
             self.joystick.draw(self.screen)
-            self.screen.blit(self.btn_text, self.BtnRect)
             # pygame.draw.rect(self.bg, (128, 128, 128), self.btn)
-            pygame.draw.circle(self.bg, (128,128,128), self.btn.center, self.SCREEN_H * 0.05)
+            pygame.draw.circle(self.screen, (128,128,128), self.btn.center, self.SCREEN_H * 0.05)
+            self.screen.blit(self.btn_text, self.BtnRect)
