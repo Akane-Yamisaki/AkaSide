@@ -15,10 +15,8 @@ class Menu(Scene):
         pygame.font.init()
         self.font = pygame.font.Font(None, int(self.SCREEN_H // 15))
 
-        # Список названий пунктов меню
-        self.menu_items = ["Новая игра", "Загрузить", "Галерея", "Выход"]
+        self.menu_items = ["Новая игра", "Загрузить", "Галерея", "Настройки", "Выход"]
         
-        # Рассчитываем координаты кнопок, чтобы они не накладывались на Аканэ (сместим влево)
         self.menu_x = int(self.SCREEN_W // 10)
         self.menu_start_y = int(self.SCREEN_H // 2)
         self.menu_spacing = int(self.SCREEN_H // 12) # Расстояние между строками
@@ -37,6 +35,12 @@ class Menu(Scene):
             print(f"Error: {e}")
             pass
 
+        self.btn = pygame.Rect(self.SCREEN_W * 0.9, self.SCREEN_H * 0.6, self.SCREEN_W * 0.05, self.SCREEN_H * 0.1)
+        self.btn_font = pygame.font.Font(None, int(self.SCREEN_H // 30))
+        self.btn_text = self.btn_font.render("Choose", True, "Black")
+        self.BtnRect = self.btn_text.get_rect()
+        self.BtnRect.center = self.btn.center
+
     def handle_events(self, event):
         action_triggered = False
 
@@ -45,20 +49,17 @@ class Menu(Scene):
                 action_triggered = True
 
             keys = pygame.key.get_pressed()
-            
+                
             if keys[pygame.K_s]:
-                if self.choose < 4: self.choose += 1 
+                if self.choose < 5: self.choose += 1 
                 else: self.choose = 1
             if keys[pygame.K_w]:
-                if self.choose < 2: self.choose = 4
+                if self.choose < 2: self.choose = 5
                 else: self.choose -= 1
 
         elif event.type == pygame.MOUSEBUTTONDOWN and config.is_mobile:
-
             mouse_pos = event.pos
-
-            if self.mobile_ok_rect.collidepoint(mouse_pos):
-                action_triggered = True
+            action_triggered = self.btn.collidepoint(mouse_pos)
 
         if action_triggered:
             match self.choose:
@@ -72,11 +73,16 @@ class Menu(Scene):
                     #gallery mechanic
                     pass
                 case 4:
+                    # settings logic
+                    pass
+                case 5:
                     pygame.quit()
                     sys.exit()
 
     def update(self):
         super().update()
+
+        self.joystick.update()
 
     def draw(self):
         self.screen.blit(self.bg, (0, 0))
@@ -100,8 +106,11 @@ class Menu(Scene):
             text_surface = self.font.render(display_text, True, color)
             
             current_y = self.menu_start_y + (index * self.menu_spacing)
-            
+
             self.screen.blit(text_surface, (current_x, current_y))
 
         if config.is_mobile:
             self.joystick.draw(self.screen)
+            self.screen.blit(self.btn_text, self.BtnRect)
+            # pygame.draw.rect(self.bg, (128, 128, 128), self.btn)
+            pygame.draw.circle(self.bg, (128,128,128), self.btn.center, self.SCREEN_H * 0.05)
