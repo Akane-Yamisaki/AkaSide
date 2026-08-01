@@ -1,0 +1,41 @@
+name: Send Code Diff to Discord
+
+on:
+  push:
+    branches:
+      - main  # Замените на вашу ветку, если у вас master или другая
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Загружаем текущий и предыдущий коммит для сравнения
+
+      - name: Get changed lines (diff)
+        id: git_diff
+        run: |
+          # Получаем изменения кода, убираем лишние служебные строки и берем первые 20 строк для Discord
+          DIFF_TEXT=$(git diff HEAD~1 HEAD | grep -E "^[+-][^+--]" | head -n 20)
+          
+          # Экранируем спецсимволы для корректной отправки
+          DIFF_TEXT="${DIFF_TEXT//'%'/'%25'}"
+          DIFF_TEXT="${DIFF_TEXT//$'\n'/'%0A'}"
+          DIFF_TEXT="${DIFF_TEXT//$'\r'/'%0D'}"
+          
+          echo "diff=$DIFF_TEXT" >> $GITHUB_OUTPUT
+
+      - name: Send to Discord
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          username: "GitHub Code Inspector"
+          content: |
+            **Новый коммит от ${{ github.actor }}!** 🚀
+            📝 *Комментарий:* ${{ github.event.head_commit.message }}
+            
+            ```diff
+            \${{ steps.git_diff.outputs.diff }}
+            ```
