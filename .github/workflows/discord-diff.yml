@@ -40,5 +40,5 @@ jobs:
             📝 *Комментарий:* ${{ github.event.head_commit.message }}
             
             ```diff
-            \${{ steps.git_diff.outputs.diff }}
+            ${{ steps.git_diff.outputs.diff }}
             ```
