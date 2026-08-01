@@ -34,9 +34,9 @@ jobs:
         uses: tsickert/discord-webhook@v7.0.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          username: "GitHub Code Inspector"
+          username: "Akane Coder"
           content: |
-            **Новый коммит от ${{ github.actor }}!** 🚀
+            **Новый коммит от ${{ github.actor }}!**
             📝 *Комментарий:* ${{ github.event.head_commit.message }}
             
             ```diff
