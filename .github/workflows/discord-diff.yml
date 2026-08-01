@@ -3,7 +3,7 @@ name: Send Code Diff to Discord
 on:
   push:
     branches:
-      - main  # Замените на вашу ветку, если у вас master или другая
+      - main  # Ваша ветка
 
 jobs:
   notify:
@@ -12,20 +12,23 @@ jobs:
       - name: Checkout repository code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # Загружаем текущий и предыдущий коммит для сравнения
+          fetch-depth: 2
 
       - name: Get changed lines (diff)
         id: git_diff
         run: |
-          # Получаем изменения кода, убираем лишние служебные строки и берем первые 20 строк для Discord
+          # Собираем измененные строки
           DIFF_TEXT=$(git diff HEAD~1 HEAD | grep -E "^[+-][^+--]" | head -n 20)
           
-          # Экранируем спецсимволы для корректной отправки
-          DIFF_TEXT="${DIFF_TEXT//'%'/'%25'}"
-          DIFF_TEXT="${DIFF_TEXT//$'\n'/'%0A'}"
-          DIFF_TEXT="${DIFF_TEXT//$'\r'/'%0D'}"
+          # Если изменений нет (например, первый коммит), пишем заглушку
+          if [ -z "$DIFF_TEXT" ]; then
+            DIFF_TEXT="Нет текстовых изменений в коде (возможно, добавлен бинарный файл или ассет)"
+          fi
           
-          echo "diff=$DIFF_TEXT" >> $GITHUB_OUTPUT
+          # Безопасное сохранение многострочного текста в GitHub Actions
+          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          echo "$DIFF_TEXT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send to Discord
         uses: tsickert/discord-webhook@v7.0.0
