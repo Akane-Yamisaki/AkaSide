@@ -47,8 +47,8 @@ class Menu(Scene):
                 self.manager.game_state = "dialogue"
                 self.manager.scene = "Bedroom_Day1"
             case 2:
-                # game saves logic
-                pass
+                self.manager.game_state = "saves"
+                self.manager.scene = "Saves"
             case 3:
                 #gallery mechanic
                 pass
