@@ -24,9 +24,10 @@ class Menu(Scene):
         try:
             if config.is_mobile:
                 bg = pygame.image.load(config.mobile_path + 'assets/Images/Menu_BG.png').convert()
+                self.Akane = lasc(config.mobile_path + 'assets/Images/Akane/Normal.png', self.SCREEN_H * 0.95).convert()
             else:
                 bg = pygame.image.load('assets/Images/Menu_BG.png').convert()
-            self.Akane = lasc('assets/Images/Akane/Normal.png', self.SCREEN_H * 0.95)
+                self.Akane = lasc('assets/Images/Akane/Normal.png', self.SCREEN_H * 0.95).convert()
             self.bg = pygame.transform.smoothscale(bg, (self.SCREEN_W, self.SCREEN_H))
 
             self.akane_x = int(self.SCREEN_W // 2 + self.SCREEN_W // 10)
