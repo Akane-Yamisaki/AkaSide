@@ -1,6 +1,6 @@
 import config, pygame
 from engine.joystick import VirtualJoystick
-from engine.load_characters_module import load_and_scale_character as lasc
+from engine.load_character_module import load_and_scale_character as lasc
 from scenes.BaseScene import Scene
 
 class Saves(Scene):
@@ -11,7 +11,7 @@ class Saves(Scene):
         self.max_saves = 3
 
         pygame.font.init()
-        self.font = pygame.font.Font(None, int(self.SCREEN_H // 15)
+        self.font = pygame.font.Font(None, int(self.SCREEN_H // 15))
         self.spacing = int(self.SCREEN_H // 20)
         self.saves_x = int(self.SCREEN_W // 10)
         self.saves_y = int(self.SCREEN_H * 0.1)
@@ -41,7 +41,7 @@ class Saves(Scene):
             
             if keys[pygame.K_s]:
                 if self.choose < self.max_saves: self.choose += 1
-                else: seld.choose = 1
+                else: self.choose = 1
 
             if keys[pygame.K_w]:
                 if self.choose < 2: self.choose = self.max_saves
