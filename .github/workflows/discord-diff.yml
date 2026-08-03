@@ -3,7 +3,7 @@ name: Send Code Diff to Discord
 on:
   push:
     branches:
-      - main  # Ваша ветка
+      - main
 
 jobs:
   notify:
@@ -14,21 +14,18 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Get changed lines (diff)
+      - name: Get changed lines (diff) and save to file
         id: git_diff
         run: |
-          # Собираем измененные строки
-          DIFF_TEXT=$(git diff HEAD~1 HEAD | grep -E "^[+-][^+--]" | head -n 20)
+          # Собираем измененные строки (увеличили лимит до 500 строк, чтобы влезло всё)
+          DIFF_TEXT=$(git diff HEAD~1 HEAD | grep -E "^[+-][^+--]" | head -n 500)
           
-          # Если изменений нет (например, первый коммит), пишем заглушку
           if [ -z "$DIFF_TEXT" ]; then
-            DIFF_TEXT="Нет текстовых изменений в коде (возможно, добавлен бинарный файл или ассет)"
+            DIFF_TEXT="Нет текстовых изменений в коде"
           fi
           
-          # Безопасное сохранение многострочного текста в GitHub Actions
-          echo "diff<<EOF" >> $GITHUB_OUTPUT
-          echo "$DIFF_TEXT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Записываем изменения в файл с расширением .diff для цветной подсветки
+          echo "$DIFF_TEXT" > changes.diff
 
       - name: Send to Discord
         uses: tsickert/discord-webhook@v7.0.0
@@ -38,7 +35,4 @@ jobs:
           content: |
             **Новый коммит от ${{ github.actor }}!**
             📝 *Комментарий:* ${{ github.event.head_commit.message }}
-            
-            ```diff
-            ${{ steps.git_diff.outputs.diff }}
-            ```
+          filename: changes.diff
