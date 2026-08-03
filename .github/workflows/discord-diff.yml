@@ -12,19 +12,24 @@ jobs:
       - name: Checkout repository code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0 # Качаем историю, чтобы гарантированно найти точку сравнения
 
       - name: Get changed lines (diff) and save to file
         id: git_diff
         run: |
-          # Собираем измененные строки (увеличили лимит до 500 строк, чтобы влезло всё)
-          DIFF_TEXT=$(git diff HEAD~1 HEAD | grep -E "^[+-][^+--]" | head -n 500)
+          # Определяем базовый коммит для сравнения (обрабатываем первый коммит в ветке)
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            # Если это самый первый коммит в репозитории, сравниваем с пустым деревом
+            DIFF_TEXT=$(git diff-tree -r -p --no-commit-id HEAD | grep -E "^[+-][^+--]" | head -n 500)
+          else
+            # В обычных случаях сравниваем предыдущее состояние push-события с текущим HEAD
+            DIFF_TEXT=$(git diff ${{ github.event.before }} HEAD | grep -E "^[+-][^+--]" | head -n 500)
+          fi
           
           if [ -z "$DIFF_TEXT" ]; then
             DIFF_TEXT="Нет текстовых изменений в коде"
           fi
           
-          # Записываем изменения в файл с расширением .diff для цветной подсветки
           echo "$DIFF_TEXT" > changes.diff
 
       - name: Send to Discord
