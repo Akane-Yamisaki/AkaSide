@@ -12,17 +12,14 @@ jobs:
       - name: Checkout repository code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Качаем историю, чтобы гарантированно найти точку сравнения
+          fetch-depth: 0
 
       - name: Get changed lines (diff) and save to file
         id: git_diff
         run: |
-          # Определяем базовый коммит для сравнения (обрабатываем первый коммит в ветке)
           if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
-            # Если это самый первый коммит в репозитории, сравниваем с пустым деревом
             DIFF_TEXT=$(git diff-tree -r -p --no-commit-id HEAD | grep -E "^[+-][^+--]" | head -n 500)
           else
-            # В обычных случаях сравниваем предыдущее состояние push-события с текущим HEAD
             DIFF_TEXT=$(git diff ${{ github.event.before }} HEAD | grep -E "^[+-][^+--]" | head -n 500)
           fi
           
