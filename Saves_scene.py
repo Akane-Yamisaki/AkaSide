@@ -27,7 +27,9 @@ class Saves(Scene):
         except FileNotFoundError as e:
             print(f'Error: {e}')
             pass
-        # btn
+            
+        self.load_save_btn = pygame.Rect(self.SCREEN_W * 0.1 self.SCREEN_H * 0.1, self.SCREEN_W * 0.8, self.SCREEN_H * 0.2)
+        
 
     def handle_events(self, event):
         self.joystick.handle_events(event)
@@ -77,8 +79,22 @@ class Saves(Scene):
         
     def draw(self):
         self.screen.blit(self.bg,(0,0))
-        # char + buttons here
+        # char here
 
+        for item_number in self.max_saves:
+            if item_number == self.choose:
+                color = (200,0,0)
+                display_text = f"> save №{item_number}"
+                current_x = self.saves_x + 15
+            else:
+                color = (180,180,180)
+                display_text = f"save №{item_number}"
+                current_x = self.saves_x
+                
+        text = self.font.render(display_text, True, color)
+        current_y = self.saves_y + (item_number * self.spacing)
+        self.screen.blit(text, (current_x, current_y))
+                        
         if config.is_mobile:
             self.joystick.draw(self.screen)
             # btn here
