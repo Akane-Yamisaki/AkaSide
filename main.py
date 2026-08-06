@@ -5,18 +5,33 @@ import config
 
 from engine.scene_manager import SceneManager
 
+# --- БЛОК СОВМЕСТИМОСТИ С PYINSTALLER (ОДИН ФАЙЛ) ---
+def resource_path(relative_path):
+    try:
+        # PyInstaller создает временную папку _MEIPASS при запуске одного .exe
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
+
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-os.chdir(BASE_DIR)
+# Устанавливаем рабочую директорию для PyInstaller
+if hasattr(sys, '_MEIPASS'):
+    os.chdir(sys._MEIPASS)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(BASE_DIR)
 
 pygame.init()
 if config.is_mobile:
     pygame.display.set_caption(config.mobile_path + 'AkaSide')
-    pygame.display.set_icon(pygame.image.load(config.mobile_path + 'assets/icon.png'))
+    # Используем функцию resource_path для ресурсов
+    pygame.display.set_icon(pygame.image.load(resource_path(config.mobile_path + 'assets/icon.png')))
 else:
     pygame.display.set_caption('AkaSide')
-    pygame.display.set_icon(pygame.image.load('assets/icon.png'))
+    # Используем функцию resource_path для ПК-версии иконки
+    pygame.display.set_icon(pygame.image.load(resource_path('assets/icon.png')))
 
 monitor_info = pygame.display.Info()
 SCREEN_W = monitor_info.current_w
@@ -47,13 +62,12 @@ while running:
             if event.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
         
-        # Передаем клики и нажатия клавиш в текущую сцену через Менеджер
         scene_manager.handle_events(event)
 
     scene_manager.update()
 
-    screen.fill((0, 0, 0)) # Очищаем старый кадр
-    scene_manager.draw()   # Просим менеджер нарисовать активную сцену
+    screen.fill((0, 0, 0))
+    scene_manager.draw()
     
     pygame.display.flip()
 
