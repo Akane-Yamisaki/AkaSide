@@ -16,7 +16,7 @@ akane_scene = ""
 
 # --- МОБИЛЬНОЕ УПРАВЛЕНИЕ ---
 is_mobile = False
-mobile_path = "data/data/com.akaside.akaside/files/app/"
+mobile_path = "/data/data/com.akaside.akaside/files/app/"
 joystick_vector = [0.0, 0.0]  # Направление движения [X, Y] от -1.0 до 1.0
 
 # Гардероб (купленные костюмы)
