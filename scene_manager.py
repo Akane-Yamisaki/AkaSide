@@ -3,6 +3,7 @@ from scenes.Akane_Bedroom import BedRoom
 from scenes.menu import Menu
 from scenes.Saves import Saves
 
+
 class SceneManager:
     def __init__(self, screen, SCREEN_W, SCREEN_H):
         self.screen = screen
@@ -14,11 +15,13 @@ class SceneManager:
         self.scenes = {
             'menu': Menu,
             'saves': Saves,
+            # Backward-compatible alias used by older scene transitions.
+            'Saves': Saves,
             'Bedroom_Day1': HouseScene,
             'Bedroom_pixel': BedRoom
         }
 
-        self.__game_state = "menu" 
+        self.__game_state = "menu"
 
         self.__current_scene = self.load_scene("menu")
 
@@ -27,8 +30,8 @@ class SceneManager:
             return self.loaded_scenes[scene_name]
 
         scene = self.scenes[scene_name]
-        new_scene = scene(self) 
-        
+        new_scene = scene(self)
+
         self.loaded_scenes[scene_name] = new_scene
         return new_scene
 
