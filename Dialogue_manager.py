@@ -1,6 +1,7 @@
 import json
 import pygame
 
+
 class DialogueManager:
     def __init__(self, screen, font):
         self.screen = screen
@@ -19,7 +20,7 @@ class DialogueManager:
                 self.current_node = "start"
                 self.is_active = True
                 self.selected_choice = 0
-        except Exception as e:
+        except (OSError, json.JSONDecodeError) as e:
             print(f"Ошибка чтения JSON-сценария {json_path}: {e}")
             self.is_active = False
 
@@ -35,19 +36,8 @@ class DialogueManager:
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_SPACE, pygame.K_RETURN):
                 # Проверяем, есть ли указание на следующую ноду
-                next_node = node.get("next")
-                
-                if not next_node:
-                    self.is_active = False
-                    return "END_DIALOGUE"
-                    
-                if next_node.startswith("TRIGGER_"):
-                    # Если это триггер (ввод имени или битва) — отдаем его в сцену
-                    return next_node
+                return self._advance_to_node(node.get("next"))
 
-                # Переключаемся на следующую реплику
-                self.current_node = next_node
-                return None
         return None
 
     def _advance_to_node(self, next_node):
@@ -55,7 +45,7 @@ class DialogueManager:
         if not next_node:
             self.is_active = False
             return "END_DIALOGUE"
-            
+
         # Если строка начинается с TRIGGER_, отдаем этот сигнал в сцену
         if next_node.startswith("TRIGGER_"):
             self.is_active = False
@@ -94,7 +84,7 @@ class DialogueManager:
         text_surf = self.font.render(text, True, (0, 255, 0))
         self.screen.blit(text_surf, (box_x + 30, box_y + 25))
 
-        # Отрисовка вариантов ответов
+        # Отрисовка вариантов ответа
         if choices:
             for i, choice in enumerate(choices):
                 color = (255, 255, 0) if i == self.selected_choice else (255, 255, 255)
@@ -103,7 +93,7 @@ class DialogueManager:
                 self.screen.blit(choice_surf, (box_x + 40, box_y + 80 + (i * 30)))
 
     def get_akane_config(self):
-            """Возвращает настройки Акане для текущей реплики"""
-            if self.is_active and self.current_node in self.nodes:
-                return self.nodes[self.current_node].get("akane_config", {"spawned": False})
-            return {"spawned": False}
+        """Возвращает настройки Акане для текущей реплики"""
+        if self.is_active and self.current_node in self.nodes:
+            return self.nodes[self.current_node].get("akane_config", {"spawned": False})
+        return {"spawned": False}
