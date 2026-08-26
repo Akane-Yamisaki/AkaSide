@@ -3,7 +3,6 @@ from engine.joystick import VirtualJoystick
 from engine.load_character_module import load_and_scale_character as lasc
 from scenes.BaseScene import Scene
 
-
 class Saves(Scene):
     def __init__(self, manager):
         super().__init__(manager)
@@ -68,16 +67,9 @@ class Saves(Scene):
             color = (200, 0, 0) if slot == self.choose else (180, 180, 180)
             prefix = "> " if slot == self.choose else ""
 
-            text = self.font.render(
-                f"{prefix}save №{slot}",
-                True,
-                color,
-            )
+            text = self.font.render(f"{prefix}save {slot}",True,color,)
 
-            self.screen.blit(
-                text,
-                (self.saves_x, self.saves_y + (slot - 1) * self.spacing),
-            )
+            self.screen.blit(text,(self.saves_x, self.saves_y + (slot - 1) * self.spacing),)
 
         if config.is_mobile:
             self.joystick.draw(self.screen)
