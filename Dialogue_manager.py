@@ -1,6 +1,7 @@
 import json
 import pygame
 
+
 class DialogueManager:
     def __init__(self, screen, font):
         self.screen = screen
@@ -34,10 +35,13 @@ class DialogueManager:
         # Листаем диалог по нажатию на ПРОБЕЛ или ENTER
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_SPACE, pygame.K_RETURN):
-                # Проверяем, есть ли указание на следующую ноду
                 return self._advance_to_node(node.get("next"))
 
         return None
+
+    def handle_events(self, event):
+        """Совместимость со сценами, которые передают события через handle_events()."""
+        return self.handle_input(event)
 
     def _advance_to_node(self, next_node):
         """Внутренний метод для перехода на следующую ноду сюжета"""
