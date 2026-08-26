@@ -1,0 +1,46 @@
+{
+  "nodes": {
+    "start": {
+      "speaker": "",
+      "text": "Чтобы продолжить нажимайте enter/выберите вариант ответа",
+      "akane_config": { "spawned": false },
+      "next": "guide1"
+    },
+    "guide1": {
+      "speaker": "",
+      "text": "Чтобы двигаться (вне взаимодействия) нажимайте wasd",
+      "akane_config": { "spawned": false },
+      "next": "guide2"
+    },
+    "guide2": {
+      "speaker": "",
+      "text": "Не забывайте кормить Акане и дарить ей подарочки",
+      "akane_config": { "spawned": false },
+      "next": "last"
+    },
+    "last": {
+      "speaker": "",
+      "text": "Приятной игры :3",
+      "akane_config": { "spawned": false },
+      "next": "akane_spawn"
+    },
+    "akane_spawn": {
+      "speaker": "Акане",
+      "text": "Опять новый запуск?... Скажи, как тебя зовут?",
+      "akane_config": { "spawned": true, "emotion": "Normal", "status": "active" },
+      "next": "TRIGGER_INPUT_NAME"
+    },
+    "check_pavel": {
+      "speaker": "Акане",
+      "text": "Хм... Ладно. Буду звать тебя так.",
+      "akane_config": { "spawned": true, "emotion": "Normal", "status": "active" },
+      "next": "akane_warning"
+    },
+    "akane_warning": {
+      "speaker": "Акане",
+      "text": "Мне всё равно, зачем ты здесь. Не трогай мои вещи. И... не надейся, что мы подружимся.",
+      "akane_config": { "spawned": true, "emotion": "Normal", "status": "active" },
+      "next": "TRIGGER_END_DIALOGUE"
+    }
+  }
+}
