@@ -3,7 +3,6 @@ from engine.joystick import VirtualJoystick
 from engine.load_character_module import load_and_scale_character as lasc
 from scenes.BaseScene import Scene
 
-
 class Menu(Scene):
     def __init__(self, manager):
         super().__init__(manager)
@@ -23,23 +22,13 @@ class Menu(Scene):
 
         try:
             if config.is_mobile:
-                bg = pygame.image.load(
-                    config.mobile_path + "assets/Images/Menu_BG.png"
-                ).convert()
-                self.Akane = lasc(
-                    config.mobile_path + "assets/Images/Akane/Normal.png",
-                    self.SCREEN_H * 0.95,
-                ).convert()
+                bg = pygame.image.load(config.mobile_path + "assets/Images/Menu_BG.png").convert()
+                self.Akane = lasc(config.mobile_path + "assets/Images/Akane/Normal.png", self.SCREEN_H * 0.95,)
             else:
                 bg = pygame.image.load("assets/Images/Menu_BG.png").convert()
-                self.Akane = lasc(
-                    "assets/Images/Akane/Normal.png",
-                    self.SCREEN_H * 0.95,
-                ).convert()
+                self.Akane = lasc("assets/Images/Akane/Normal.png",self.SCREEN_H * 0.95,)
 
-            self.bg = pygame.transform.smoothscale(
-                bg, (self.SCREEN_W, self.SCREEN_H)
-            )
+            self.bg = pygame.transform.smoothscale(bg, (self.SCREEN_W, self.SCREEN_H))
             self.akane_x = int(self.SCREEN_W // 2 + self.SCREEN_W // 10)
             self.akane_y = int(self.SCREEN_H // 4 - self.SCREEN_H // 14)
         except (FileNotFoundError, pygame.error) as e:
@@ -139,10 +128,5 @@ class Menu(Scene):
 
         if config.is_mobile:
             self.joystick.draw(self.screen)
-            pygame.draw.circle(
-                self.screen,
-                (128, 128, 128),
-                self.btn.center,
-                self.SCREEN_H * 0.05,
-            )
+            pygame.draw.circle(self.screen,(128, 128, 128),self.btn.center,self.SCREEN_H * 0.05,)
             self.screen.blit(self.btn_text, self.BtnRect)
