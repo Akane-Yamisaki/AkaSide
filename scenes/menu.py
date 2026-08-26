@@ -51,11 +51,11 @@ class Menu(Scene):
     def actions(self):
         match self.choose:
             case 1:
-                self.manager.game_state = "dialogue"
                 self.manager.scene = "Bedroom_Day1"
+                self.manager.game_state = "dialogue"
             case 2:
-                self.manager.game_state = "saves"
                 self.manager.scene = "Saves"
+                self.manager.game_state = "saves"
             case 3:
                 # gallery mechanic
                 pass
