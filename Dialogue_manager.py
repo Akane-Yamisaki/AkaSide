@@ -1,7 +1,6 @@
 import json
 import pygame
 
-
 class DialogueManager:
     def __init__(self, screen, font):
         self.screen = screen
