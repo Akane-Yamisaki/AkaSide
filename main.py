@@ -5,18 +5,15 @@ import config
 
 from engine.scene_manager import SceneManager
 
-
 # --- БЛОК СОВМЕСТИМОСТИ С PYINSTALLER (ОДИН ФАЙЛ) ---
 def resource_path(relative_path):
     """Возвращает путь к ресурсу для обычного запуска и PyInstaller."""
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
-
 def is_android():
     """Определяет запуск через Android activity."""
     return hasattr(sys, "getandroidactivity")
-
 
 os.environ["SDL_VIDEO_CENTERED"] = "1"
 
