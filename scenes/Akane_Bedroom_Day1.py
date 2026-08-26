@@ -57,10 +57,7 @@ class HouseScene(Scene):
                             crash(f'FATAL ERROR: ACCESS DENIED \nCLOSING AKASIDE.EXE')
                         else:
                             self.dialogue_sys.current_node = "check_pavel"
-
-                        # TRIGGER_INPUT_NAME деактивирует DialogueManager.
-                        # После ввода имени мы продолжаем тот же диалог,
-                        # поэтому его нужно снова активировать.
+                            
                         self.dialogue_sys.is_active = True
                         self.dialogue_sys.selected_choice = 0
                         self.manager.game_state = "dialogue"
