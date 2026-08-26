@@ -10,8 +10,8 @@ class HouseScene(Scene):
     def __init__(self, manager):
         super().__init__(manager)
 
-        self.input_mode = False  
-        self.typed_name = "" 
+        self.input_mode = False
+        self.typed_name = ""
 
         if config.is_mobile:
             self.akane_sprites = {
@@ -44,11 +44,11 @@ class HouseScene(Scene):
 
         if current_state == "input_name":
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:  
+                if event.key == pygame.K_RETURN:
                     if self.typed_name.strip() != "":
                         config.player_name = self.typed_name.strip()
                         self.input_mode = False
-                        
+
                         if config.player_name.lower() in ["павел", "pavel"]:
                             print("ХОРРОР ТРИГГЕР: Аканэ замерла...")
                             config.trust_level = -50
@@ -57,11 +57,15 @@ class HouseScene(Scene):
                             crash(f'FATAL ERROR: ACCESS DENIED \nCLOSING AKASIDE.EXE')
                         else:
                             self.dialogue_sys.current_node = "check_pavel"
-                        
+
+                        # TRIGGER_INPUT_NAME деактивирует DialogueManager.
+                        # После ввода имени мы продолжаем тот же диалог,
+                        # поэтому его нужно снова активировать.
+                        self.dialogue_sys.is_active = True
                         self.dialogue_sys.selected_choice = 0
-                        self.manager.game_state = "dialogue" 
-                
-                elif event.key == pygame.K_BACKSPACE:  
+                        self.manager.game_state = "dialogue"
+
+                elif event.key == pygame.K_BACKSPACE:
                     self.typed_name = self.typed_name[:-1]
                 else:
                     if len(self.typed_name) < 12 and (event.unicode.isalnum() or event.unicode == " "):
@@ -71,12 +75,11 @@ class HouseScene(Scene):
         elif current_state == "dialogue":
             if event.type == pygame.KEYDOWN:
                 trigger = self.dialogue_sys.handle_input(event)
-                
+
                 if trigger == "TRIGGER_INPUT_NAME":
-                    self.manager.game_state = "input_name" 
+                    self.manager.game_state = "input_name"
                 elif trigger == "BATTLE":
                     print("Переключаемся на битву Undertale!")
-                # ИСПРАВЛЕНО: ловим точный триггер из JSON и переключаем режим
                 elif trigger == "TRIGGER_END_DIALOGUE" or trigger == "END_DIALOGUE":
                     print("Интро завершено! Включаем режим исследования.")
                     self.manager.game_state = "exploration"
@@ -97,19 +100,18 @@ class HouseScene(Scene):
 
         akane_config = self.dialogue_sys.get_akane_config()
         is_spawned = akane_config.get("spawned", False) if self.manager.game_state != "visual_novel_roam" else True
-        
+
         if is_spawned:
             current_emotion = akane_config.get("emotion", "Normal") if self.manager.game_state != "visual_novel_roam" else "Normal"
             base_sprite = self.akane_sprites.get(current_emotion, self.akane_sprites["Normal"])
             final_sprite = base_sprite
-            
-            # Эффект ухода на задний план (БЕЗ БАГОВ)
+
             if self.manager.game_state != "visual_novel_roam" and akane_config.get("status") == "inactive":
                 old_w, old_h = base_sprite.get_size()
                 new_w = int(old_w * 0.7)
                 new_h = int(old_h * 0.7)
                 final_sprite = pygame.transform.smoothscale(base_sprite, (new_w, new_h))
-                
+
                 final_sprite = final_sprite.copy()
                 dark_filter = pygame.Surface((new_w, new_h), pygame.SRCALPHA)
                 dark_filter.fill((100, 100, 100, 0))
@@ -120,7 +122,6 @@ class HouseScene(Scene):
             akane_y = box_y - final_sprite.get_height() + 120
             self.screen.blit(final_sprite, (akane_x, akane_y))
 
-        # Рисуем черную плашку новеллы
         if self.manager.game_state != "visual_novel_roam":
             textbox = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
             textbox.fill((0, 0, 0, 180))
