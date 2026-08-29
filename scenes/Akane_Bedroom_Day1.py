@@ -14,17 +14,15 @@ class HouseScene(Scene):
         self.typed_name = ""
 
         if config.is_mobile:
-            self.akane_sprites = {
-                "Normal": load_and_scale_character(config.mobile_path + "assets/Images/Akane/Normal_2.png",int(self.SCREEN_H * 1),)
+            self.akane_sprites = {"Normal": load_and_scale_character(config.mobile_path + "assets/Images/Akane/Normal_2.png",int(self.SCREEN_H * 1),)
             }
         else:
-            self.akane_sprites = {
-                "Normal": load_and_scale_character("assets/Images/Akane/Normal_2.png", int(self.SCREEN_H * 1))
+            self.akane_sprites = {"Normal": load_and_scale_character("assets/Images/Akane/Normal_2.png", int(self.SCREEN_H * 1))
             }
 
         try:
             if config.is_mobile:
-                raw_bg = pygame.image.load(config.mobile_path+ "assets/Images/Locations/Akane_bedroom.png").convert()
+                raw_bg = pygame.image.load(config.mobile_path + "assets/Images/Locations/Akane_bedroom.png").convert()
             else:
                 raw_bg = pygame.image.load("assets/Images/Locations/Akane_bedroom.png").convert()
             self.bg = pygame.transform.smoothscale(raw_bg, (self.SCREEN_W, self.SCREEN_H))
@@ -42,7 +40,7 @@ class HouseScene(Scene):
         current_state = self.manager.game_state
         super().handle_events(event)
 
-        # Безопасно проверяем клик по ПК-кнопке "Choose" через мышку
+        # Проверяем клик по ПК-кнопке "Choose" через мышку, используя контекст СЦЕНЫ (self)
         activation_triggered = False
         if event.type == pygame.MOUSEBUTTONDOWN and config.is_mobile:
             if hasattr(self, "btn"):
@@ -50,49 +48,30 @@ class HouseScene(Scene):
 
         # СОСТОЯНИЕ: Ввод имени персонажа
         if current_state == "input_name":
+            if activation_triggered:
+                if self.typed_name.strip() != "":
+                    self._confirm_name()
+                return
+
             if event.type == pygame.KEYDOWN:
-                # Если нажали ENTER или кликнули по ПК-кнопке "Choose"
-                if event.key == pygame.K_RETURN or activation_triggered:
+                # Если нажали ENTER на клавиатуре
+                if event.key == pygame.K_RETURN:
                     if self.typed_name.strip() != "":
-                        config.player_name = self.typed_name.strip()
-                        self.input_mode = False
+                        self._confirm_name()
 
-                        # ХОРРОР ТРИГГЕР ДЛЯ ПАВЛА
-                        if config.player_name.lower() in ["павел", "pavel"]:
-                            print("ХОРРОР ТРИГГЕР: Аканэ замерла...")
-                            config.trust_level = -50
-                            self.dialogue_sys.current_node = "pavel_horror"
-                            show_boss_error(
-                                "FATAL ERROR: Akane required admin permissions..."
-                            )
-                            crash(
-                                "FATAL ERROR: ACCESS DENIED \nCLOSING AKASIDE.EXE"
-                            )
-                        else:
-                            self.dialogue_sys.current_node = "check_pavel"
-
-                        activation_triggered = False
-                        self.dialogue_sys.is_active = True
-                        self.dialogue_sys.selected_choice = 0
-                        self.manager.game_state = "dialogue"
-
+                # Удаление символа (работает и на ПК, и со смартфона через родную клавиатуру)
                 elif event.key == pygame.K_BACKSPACE:
                     self.typed_name = self.typed_name[:-1]
                 else:
-                    if len(self.typed_name) < 12 and (
-                        event.unicode.isalnum() or event.unicode == " "
-                    ):
+                    if len(self.typed_name) < 12 and (event.unicode.isalnum() or event.unicode == " "):
                         self.typed_name += event.unicode
             return
 
         # СОСТОЯНИЕ: Обычный диалог / Новелла
         elif current_state == "dialogue":
-            # Перелистывание диалога по кнопке "Choose" мышкой
             if activation_triggered:
                 # Симулируем нажатие ENTER для менеджера диалогов
-                dummy_event = pygame.event.Event(
-                    pygame.KEYDOWN, key=pygame.K_RETURN
-                )
+                dummy_event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN)
                 trigger = self.dialogue_sys.handle_input(dummy_event)
                 activation_triggered = False
             elif event.type == pygame.KEYDOWN:
@@ -110,6 +89,23 @@ class HouseScene(Scene):
                 self.manager.game_state = "exploration"
                 self.manager.scene = "Bedroom_pixel"
                 return
+
+    def _confirm_name(self):
+        config.player_name = self.typed_name.strip()
+        self.input_mode = False
+
+        if config.player_name.lower() in ["павел", "pavel"]:
+            print("ХОРРОР ТРИГГЕР: Аканэ замерла...")
+            config.trust_level = -50
+            self.dialogue_sys.current_node = "pavel_horror"
+            show_boss_error('FATAL ERROR: Akane required admin permissions...')
+            crash(f'FATAL ERROR: ACCESS DENIED \nCLOSING AKASIDE.EXE')
+        else:
+            self.dialogue_sys.current_node = "check_pavel"
+
+        self.dialogue_sys.is_active = True
+        self.dialogue_sys.selected_choice = 0
+        self.manager.game_state = "dialogue"
 
     def update(self):
         super().update()
