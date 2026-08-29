@@ -1,9 +1,10 @@
 import config
 import pygame
+import interaction.choose as choose
+from engine.pc_warning import crash, show_boss_error
 from dialogue.Dialogue_manager import DialogueManager
 from engine.load_character_module import load_and_scale_character
 from engine.pc_warning import crash, show_boss_error
-import interaction.choose as choose
 from scenes.BaseScene import Scene
 
 class HouseScene(Scene):
