@@ -1,4 +1,7 @@
-import config, pygame, sys
+import config
+import pygame
+import sys
+import interaction.choose as choose
 from engine.joystick import VirtualJoystick
 from engine.load_character_module import load_and_scale_character as lasc
 from scenes.BaseScene import Scene
@@ -11,10 +14,18 @@ class Menu(Scene):
         self.joystick = VirtualJoystick(self.SCREEN_W, self.SCREEN_H)
         self.choose = 1
 
+        self.joy_ready = True
+
         pygame.font.init()
         self.font = pygame.font.Font(None, int(self.SCREEN_H // 15))
 
-        self.menu_items = ["Новая игра", "Загрузить", "Галерея", "Настройки", "Выход"]
+        self.menu_items = [
+            "Новая игра",
+            "Загрузить",
+            "Галерея",
+            "Настройки",
+            "Выход",
+        ]
 
         self.menu_x = int(self.SCREEN_W // 10)
         self.menu_start_y = int(self.SCREEN_H // 2)
@@ -23,10 +34,10 @@ class Menu(Scene):
         try:
             if config.is_mobile:
                 bg = pygame.image.load(config.mobile_path + "assets/Images/Menu_BG.png").convert()
-                self.Akane = lasc(config.mobile_path + "assets/Images/Akane/Normal.png", self.SCREEN_H * 0.95,)
+                self.Akane = lasc(config.mobile_path + "assets/Images/Akane/Normal.png",self.SCREEN_H * 0.95,)
             else:
                 bg = pygame.image.load("assets/Images/Menu_BG.png").convert()
-                self.Akane = lasc("assets/Images/Akane/Normal.png",self.SCREEN_H * 0.95,)
+                self.Akane = lasc("assets/Images/Akane/Normal.png", self.SCREEN_H * 0.95)
 
             self.bg = pygame.transform.smoothscale(bg, (self.SCREEN_W, self.SCREEN_H))
             self.akane_x = int(self.SCREEN_W // 2 + self.SCREEN_W // 10)
@@ -37,16 +48,6 @@ class Menu(Scene):
             self.Akane = pygame.Surface((0, 0))
             self.akane_x = 0
             self.akane_y = 0
-
-        self.btn = pygame.Rect(
-            self.SCREEN_W * 0.9,
-            self.SCREEN_H * 0.6,
-            self.SCREEN_W * 0.05,
-            self.SCREEN_H * 0.1,
-        )
-        self.btn_font = pygame.font.Font(None, int(self.SCREEN_H // 30))
-        self.btn_text = self.btn_font.render("Choose", True, "Black")
-        self.BtnRect = self.btn_text.get_rect(center=self.btn.center)
 
     def actions(self):
         match self.choose:
@@ -68,19 +69,8 @@ class Menu(Scene):
 
     def handle_events(self, event):
         self.joystick.handle_events(event)
-        action_triggered = False
 
-        if event.type == pygame.KEYDOWN:
-            if event.key in (pygame.K_KP_ENTER, pygame.K_RETURN):
-                action_triggered = True
-
-            if event.key in (pygame.K_DOWN, pygame.K_s):
-                self._move_selection(1)
-            elif event.key in (pygame.K_UP, pygame.K_w):
-                self._move_selection(-1)
-
-        elif event.type == pygame.MOUSEBUTTONDOWN and config.is_mobile:
-            action_triggered = self.btn.collidepoint(event.pos)
+        action_triggered = choose.activate(self, event)
 
         if action_triggered:
             self.actions()
@@ -92,19 +82,7 @@ class Menu(Scene):
         super().update()
 
         self.joystick.update()
-        if not hasattr(self, "joy_ready"):
-            self.joy_ready = True
-
-        joy_y = config.joystick_vector[1]
-
-        if joy_y > 0.5 and self.joy_ready:
-            self._move_selection(1)
-            self.joy_ready = False
-        elif joy_y < -0.5 and self.joy_ready:
-            self._move_selection(-1)
-            self.joy_ready = False
-        elif abs(joy_y) < 0.2:
-            self.joy_ready = True
+        choose.joystick_update(self)
 
     def draw(self):
         self.screen.blit(self.bg, (0, 0))
@@ -128,5 +106,4 @@ class Menu(Scene):
 
         if config.is_mobile:
             self.joystick.draw(self.screen)
-            pygame.draw.circle(self.screen,(128, 128, 128),self.btn.center,self.SCREEN_H * 0.05,)
-            self.screen.blit(self.btn_text, self.BtnRect)
+            choose.draw_btn(self, False, None) 
