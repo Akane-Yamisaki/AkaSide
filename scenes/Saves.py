@@ -1,6 +1,5 @@
 import config, pygame
 from engine.joystick import VirtualJoystick
-from engine.load_character_module import load_and_scale_character as lasc
 from scenes.BaseScene import Scene
 
 class Saves(Scene):
@@ -37,16 +36,12 @@ class Saves(Scene):
     def load_background(self):
         try:
             if config.is_mobile:
-                bg = pygame.image.load(
-                    config.mobile_path + "assets/Images/Saves_BG.png"
-                ).convert()
+                bg = pygame.image.load(config.mobile_path + "assets/Images/Saves_BG.png").convert()
             else:
                 bg = pygame.image.load("assets/Images/Saves_BG.png").convert()
 
-            return pygame.transform.smoothscale(
-                bg,
-                (self.SCREEN_W, self.SCREEN_H),
-            )
+            return pygame.transform.smoothscale(bg,(self.SCREEN_W, self.SCREEN_H))
+        
         except (FileNotFoundError, pygame.error) as e:
             print(f"Error loading Saves background: {e}")
             return pygame.Surface((self.SCREEN_W, self.SCREEN_H))
@@ -65,8 +60,25 @@ class Saves(Scene):
                 self.manager.scene = "menu"
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if self.rect.collidepoint(event.pos):
-                self.manager.scene = "menu"
+            if event.button == 1:
+                if self.rect.collidepoint(event.pos):
+                    self.manager.scene = "menu"
+                    return
+
+                for slot in range(1, self.max_saves + 1):
+                    button_rect = pygame.Rect(self.save_x, self.saves_y + (slot - 1) * self.spacing, self.SCREEN_W * 0.08, self.SCREEN_H * 0.05)
+                    button_rect2 = pygame.Rect(self.save_x + self.SCREEN_W * 0.1, self.saves_y + (slot - 1) * self.spacing, self.SCREEN_W * 0.08, self.SCREEN_H * 0.05)
+
+                    if button_rect.collidepoint(event.pos):
+                        self.timelines(slot, "save")
+                        break
+                    elif button_rect2.collidepoint(event.pos):
+                        self.timelines(slot, "del")
+                        break
+
+    def timelines(self, slot, command):
+        print(f'{slot}: {command}')
+        pass
 
     def update(self):
         super().update()
@@ -98,9 +110,12 @@ class Saves(Scene):
 
             text = self.font.render(f"{prefix}save {slot}",True,color,)
             save_txt = self.font.render("Save", True, (180, 180, 180))
+            delete_txt = self.font.render("Del", True, (180, 180, 180))
 
             button_rect = pygame.Rect(self.save_x, self.saves_y + (slot - 1) * self.spacing, self.SCREEN_W * 0.08, self.SCREEN_H * 0.05)
             outline_rect = button_rect.inflate(3,3)
+            button_rect2 = pygame.Rect(self.save_x + self.SCREEN_W * 0.1, self.saves_y + (slot - 1) * self.spacing, self.SCREEN_W * 0.08, self.SCREEN_H * 0.05)
+            outline_rect2 = button_rect2.inflate(3,3)
 
             self.screen.blit(text,(self.saves_x, self.saves_y + (slot - 1) * self.spacing),)
 
@@ -111,7 +126,16 @@ class Saves(Scene):
 
             self.screen.blit(self.button_surf, button_rect)
             self.screen.blit(save_txt, (self.save_x + self.SCREEN_W * 0.01, self.saves_y + (slot - 1) * self.spacing))
-            pygame.draw.rect(self.screen, (230,70,120), outline_rect, 2)    
+            pygame.draw.rect(self.screen, (230,70,120), outline_rect, 2)
+
+            if button_rect2.collidepoint(mouse_pos):
+                self.button_surf.fill((196, 22, 54, 200))
+            else:
+                self.button_surf.fill((179, 48, 94, 130))
+
+            self.screen.blit(self.button_surf, button_rect2)
+            self.screen.blit(delete_txt, (self.save_x + self.SCREEN_W * 0.12, self.saves_y + (slot - 1) * self.spacing))
+            pygame.draw.rect(self.screen, (237, 123, 144), outline_rect2, 2)
 
         if config.is_mobile:
             self.joystick.draw(self.screen)
