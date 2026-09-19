@@ -49,14 +49,6 @@ class BedRoom(Scene):
         self.active_interaction = None
 
     def interact_with_object(self):
-        """Логика выполнения действий при нажатии кнопки взаимодействия"""
-        # if self.active_interaction == "Акане":
-        #     print("Логика: Запускаем диалог с Акане!")
-        #     # Переключаем статус движка обратно на Визуальную Новеллу
-        #     self.manager.game_state = "dialogue"
-        #     # Возвращаем игрока в сцену разговора
-        #     self.manager.scene = "Bedroom_Day1"
-            
         if self.active_interaction == "Дверь":
             print("Логика: Игрок выходит из комнаты!")
             # Здесь в будущем будет переключение на коридор или улицу:
