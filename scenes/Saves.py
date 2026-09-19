@@ -31,7 +31,6 @@ class Saves(Scene):
         self.button_surf = pygame.Surface((self.SCREEN_W * 0.08, self.SCREEN_H * 0.05), pygame.SRCALPHA)
 
         self.save_x = self.saves_x + self.SCREEN_W * 0.15
-        self.delete_x = self.save_x + self.SCREEN_W * 0.1
 
     def load_background(self):
         try:
