@@ -3,7 +3,6 @@ from engine.joystick import VirtualJoystick
 from engine.load_character_module import load_and_scale_character as lasc
 from scenes.BaseScene import Scene
 
-
 class Saves(Scene):
     def __init__(self, manager):
         super().__init__(manager)
@@ -19,14 +18,30 @@ class Saves(Scene):
 
         self.bg = self.load_background()
 
+        self.radius = int(self.SCREEN_H * 0.05)
+        self.center_x = int(self.SCREEN_W * 0.05)
+        self.center_y = int(self.SCREEN_H * 0.05)
+        
+        self.rect = pygame.Rect(
+            self.center_x - self.radius, 
+            self.center_y - self.radius, 
+            self.radius * 2, 
+            self.radius * 2
+        )
+
+        self.button_surf = pygame.Surface((self.SCREEN_W * 0.08, self.SCREEN_H * 0.05), pygame.SRCALPHA)
+
+        self.save_x = self.saves_x + self.SCREEN_W * 0.15
+        self.delete_x = self.save_x + self.SCREEN_W * 0.1
+
     def load_background(self):
         try:
             if config.is_mobile:
                 bg = pygame.image.load(
-                    config.mobile_path + "assets/Image/Saves_BG.png"
+                    config.mobile_path + "assets/Images/Saves_BG.png"
                 ).convert()
             else:
-                bg = pygame.image.load("assets/Image/Saves_BG.png").convert()
+                bg = pygame.image.load("assets/Images/Saves_BG.png").convert()
 
             return pygame.transform.smoothscale(
                 bg,
@@ -46,6 +61,13 @@ class Saves(Scene):
             elif event.key in (pygame.K_UP, pygame.K_w):
                 self.choose = self.choose - 1 if self.choose > 1 else self.max_saves
 
+            elif event.key == pygame.K_ESCAPE:
+                self.manager.scene = "menu"
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.manager.scene = "menu"
+
     def update(self):
         super().update()
         self.joystick.update()
@@ -63,14 +85,33 @@ class Saves(Scene):
 
     def draw(self):
         self.screen.blit(self.bg, (0, 0))
+        pygame.draw.circle(self.screen, (160, 0, 0), (self.center_x, self.center_y), self.radius)
+        text_surf = self.font.render("Exit", True, (0, 0, 0))
+        text_rect = text_surf.get_rect(center=(self.center_x, self.center_y))
+        self.screen.blit(text_surf, text_rect)
+
+        mouse_pos = pygame.mouse.get_pos()
 
         for slot in range(1, self.max_saves + 1):
             color = (200, 0, 0) if slot == self.choose else (180, 180, 180)
             prefix = "> " if slot == self.choose else ""
 
             text = self.font.render(f"{prefix}save {slot}",True,color,)
+            save_txt = self.font.render("Save", True, (180, 180, 180))
+
+            button_rect = pygame.Rect(self.save_x, self.saves_y + (slot - 1) * self.spacing, self.SCREEN_W * 0.08, self.SCREEN_H * 0.05)
+            outline_rect = button_rect.inflate(3,3)
 
             self.screen.blit(text,(self.saves_x, self.saves_y + (slot - 1) * self.spacing),)
+
+            if button_rect.collidepoint(mouse_pos):
+                self.button_surf.fill((50, 30, 70, 200))
+            else:
+                self.button_surf.fill((30, 20, 40, 130))
+
+            self.screen.blit(self.button_surf, button_rect)
+            self.screen.blit(save_txt, (self.save_x + self.SCREEN_W * 0.01, self.saves_y + (slot - 1) * self.spacing))
+            pygame.draw.rect(self.screen, (230,70,120), outline_rect, 2)    
 
         if config.is_mobile:
             self.joystick.draw(self.screen)
