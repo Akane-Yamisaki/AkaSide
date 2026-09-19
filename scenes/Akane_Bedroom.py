@@ -13,7 +13,6 @@ class BedRoom(Scene):
 
         # --- 1. ВОЗВРАЩАЕМ ЗАГРУЗКУ И ПИКСЕЛИЗАЦИЮ ТВОЕГО БГ ---
         try:
-            
             if config.is_mobile: raw_bg = pygame.image.load(config.mobile_path + 'assets/Images/Locations/Bedroom_pixelate.png').convert() 
             else: raw_bg = pygame.image.load('assets/Images/Locations/Bedroom_pixelate.png').convert()
             self.bg = pixelate_image(raw_bg, self.SCREEN_W, self.SCREEN_H, 6)
@@ -39,7 +38,6 @@ class BedRoom(Scene):
         p_h = int(self.SCREEN_H * 0.06)
         self.player_rect = pygame.Rect(int(self.SCREEN_W * 0.48), int(self.SCREEN_H * 0.55), p_w, p_h)
         self.player_speed = int(self.SCREEN_H * 0.005) + 1
-        self.akane_rect = pygame.Rect(int(self.SCREEN_W * 0.25), int(self.SCREEN_H * 0.73), p_w, p_h)
 
         # --- ХИТБОКС ДВЕРИ (Слева по центру стены + 1% внутрь комнаты) ---
         # Считаем координату X левой стены (SCREEN_W * 0.14) + добавляем 1% ширины (SCREEN_W * 0.01)
@@ -52,14 +50,14 @@ class BedRoom(Scene):
 
     def interact_with_object(self):
         """Логика выполнения действий при нажатии кнопки взаимодействия"""
-        if self.active_interaction == "Акане":
-            print("Логика: Запускаем диалог с Акане!")
-            # Переключаем статус движка обратно на Визуальную Новеллу
-            self.manager.game_state = "dialogue"
-            # Возвращаем игрока в сцену разговора
-            self.manager.scene = "Bedroom_Day1"
+        # if self.active_interaction == "Акане":
+        #     print("Логика: Запускаем диалог с Акане!")
+        #     # Переключаем статус движка обратно на Визуальную Новеллу
+        #     self.manager.game_state = "dialogue"
+        #     # Возвращаем игрока в сцену разговора
+        #     self.manager.scene = "Bedroom_Day1"
             
-        elif self.active_interaction == "Дверь":
+        if self.active_interaction == "Дверь":
             print("Логика: Игрок выходит из комнаты!")
             # Здесь в будущем будет переключение на коридор или улицу:
             # self.manager.scene = "Corridor_pixel"
@@ -106,9 +104,7 @@ class BedRoom(Scene):
         # 5. ПРОВЕРКА ДИСТАНЦИИ ВЗАИМОДЕЙСТВИЯ (Перенеси этот блок сюда, если он стерся)
         self.active_interaction = None
         check_zone = self.player_rect.inflate(80, 80)
-        if check_zone.colliderect(self.akane_rect):
-            self.active_interaction = "Акане"
-        elif check_zone.colliderect(self.door_rect):
+        if check_zone.colliderect(self.door_rect):
             self.active_interaction = "Дверь"
         elif check_zone.colliderect(self.obstacles[-1]):
             self.active_interaction = "Кровать"
@@ -131,8 +127,6 @@ class BedRoom(Scene):
         # pygame.draw.rect(door_surf, (0, 0, 255, 255), (0, 0, self.door_rect.width, self.door_rect.height), 3)
         # self.screen.blit(door_surf, (self.door_rect.x, self.door_rect.y))
 
-        # 4. Отрисовка Аканэ и Игрока
-        pygame.draw.rect(self.screen, (255, 105, 180), self.akane_rect) 
         pygame.draw.rect(self.screen, (0, 255, 255), self.player_rect)
 
         # 5. Рисуем джойстик поверх персонажей
