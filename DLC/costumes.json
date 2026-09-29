@@ -1,0 +1,7 @@
+{
+    "costumes":{
+        "default": true,
+        "maid": false,
+        "swimsuit": false
+    }
+}

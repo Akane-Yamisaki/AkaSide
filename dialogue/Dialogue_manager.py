@@ -23,7 +23,11 @@ class DialogueManager:
             print(f"Ошибка чтения JSON-сценария {json_path}: {e}")
             self.is_active = False
 
-    def handle_input(self, event):
+    def handle_input(self, event, force_advance=False):
+        """
+        Обрабатывает ввод. 
+        force_advance=True передается из сцены, если игрок успешно кликнул по кнопке "Choose" мышкой.
+        """
         if not self.is_active:
             return None
 
@@ -31,7 +35,11 @@ class DialogueManager:
         if not node:
             return None
 
-        # Листаем диалог по нажатию на ПРОБЕЛ или ENTER
+        # Если сцена принудительно говорит пролистнуть (например, от клика по ПК-кнопке)
+        if force_advance:
+            return self._advance_to_node(node.get("next"))
+
+        # Листаем диалог по нажатию на ПРОБЕЛ или ENTER на клавиатуре
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_SPACE, pygame.K_RETURN):
                 return self._advance_to_node(node.get("next"))
