@@ -1,5 +1,6 @@
 import config, pygame
 from engine.joystick import VirtualJoystick
+from engine import timelines as tl
 from scenes.BaseScene import Scene
 
 class Saves(Scene):
@@ -79,7 +80,10 @@ class Saves(Scene):
 
     def timelines(self, slot, command):
         print(f'{slot}: {command}')
-        pass
+        if command == "save":
+            tl.save_data(slot)
+        elif command == "del":
+            tl.delete_data(slot)
 
     def update(self):
         super().update()
