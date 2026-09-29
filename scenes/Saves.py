@@ -81,9 +81,11 @@ class Saves(Scene):
     def timelines(self, slot, command):
         print(f'{slot}: {command}')
         if command == "save":
-            tl.save_data(slot)
+            tl.save_data(slot, self.manager)
         elif command == "del":
             tl.delete_data(slot)
+        elif command == "load":
+            pass
 
     def update(self):
         super().update()
