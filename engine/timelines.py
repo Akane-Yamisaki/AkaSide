@@ -1,8 +1,6 @@
-import json, config
-from engine import scene_manager
-from scenes import BaseScene
+import json, config, os
 
-def save_data(slot):
+def save_data(slot, manager):
     data = {
         "Player_name": config.player_name,
         "Money": config.money,
@@ -14,16 +12,31 @@ def save_data(slot):
         "Akane_location": config.akane_scene,
         "Inventory": config.inventory,
         "Costume": config.current_costume,
-        # "Scene": scene_manager.current_scene.scene,
-        # "Game_state": BaseScene.Scene.current_state,
+        "Game_state": manager.game_state,
         "Player_pos": (config.player_x, config.player_y)
     }
 
     for key, value in data.items():
         print(f"{key}: {type(value)}")
     
-    with open(f"saves/save{slot}.json", "w", encoding="utf-8") as f:
-        json.dump(data,f)
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    save_dir = os.path.join(base_dir, "saves")
+    
+    os.makedirs(save_dir, exist_ok=True)
+    
+    save_path = os.path.join(save_dir, f"save{slot}.json")
+    with open(save_path, "w", encoding="utf-8") as f:
+        json.dump(data, f)
 
 def delete_data(slot):
-    print(slot)
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    save_dir = os.path.join(base_dir, "saves")
+        
+    os.makedirs(save_dir, exist_ok=True)
+
+    save_path = os.path.join(save_dir, f"save{slot}.json")
+    if os.path.exists(save_path):
+        os.remove(save_path)
+        print(f"Сейв {slot} удалён")
+    else:
+        print(f"Сейв {slot} не найден.")
