@@ -1,165 +1,147 @@
-import config
 import pygame
-import interaction.choose as choose
-from engine.pc_warning import crash, show_boss_error
-from dialogue.Dialogue_manager import DialogueManager
-from engine.load_character_module import load_and_scale_character
+import config
 from scenes.BaseScene import Scene
+from scenes.pixelate_Location import pixelate_image
+from engine.joystick import VirtualJoystick
 
-class HouseScene(Scene):
+class BedRoom(Scene):
     def __init__(self, manager):
         super().__init__(manager)
+        config.is_onScreen = False
 
-        self.input_mode = False
-        self.typed_name = ""
+        self.joystick = VirtualJoystick(self.SCREEN_W, self.SCREEN_H)
 
-        if config.is_mobile:
-            self.akane_sprites = {"Normal": load_and_scale_character(config.mobile_path + "assets/Images/Akane/Normal_2.png",int(self.SCREEN_H * 1),)
-            }
-        else:
-            self.akane_sprites = {"Normal": load_and_scale_character("assets/Images/Akane/Normal_2.png", int(self.SCREEN_H * 1))
-            }
-
+        # --- 1. ВОЗВРАЩАЕМ ЗАГРУЗКУ И ПИКСЕЛИЗАЦИЮ ТВОЕГО БГ ---
         try:
-            if config.is_mobile:
-                raw_bg = pygame.image.load(config.mobile_path + "assets/Images/Locations/Akane_bedroom.png").convert()
-            else:
-                raw_bg = pygame.image.load("assets/Images/Locations/Akane_bedroom.png").convert()
-            self.bg = pygame.transform.smoothscale(raw_bg, (self.SCREEN_W, self.SCREEN_H))
+            if config.is_mobile: raw_bg = pygame.image.load(config.mobile_path + 'assets/Images/Locations/Bedroom_pixelate.png').convert() 
+            else: raw_bg = pygame.image.load('assets/Images/Locations/Bedroom_pixelate.png').convert()
+            self.bg = pixelate_image(raw_bg, self.SCREEN_W, self.SCREEN_H, 6)
         except Exception as e:
-            print(f"Ошибка загрузки фона: {e}")
+            print(f"Ошибка загрузки пиксельного фона: {e}")
             self.bg = pygame.Surface((self.SCREEN_W, self.SCREEN_H))
+            self.bg.fill((40, 20, 20))
 
-        font_size = int(self.SCREEN_H * 0.03)
-        self.font = pygame.font.SysFont("arial", font_size)
+        # --- ТВОЯ СВЕРХТОЧНАЯ МЕБЕЛЬ И СТЕНЫ ---
+        shkaf = pygame.Rect(int(self.SCREEN_W * 0.258), int(self.SCREEN_H * 0.18), int(self.SCREEN_W * 0.165), int(self.SCREEN_H * 0.15))
+        stol = pygame.Rect(int(self.SCREEN_W * 0.17), int(self.SCREEN_H * 0.70), int(self.SCREEN_W * 0.23), int(self.SCREEN_H * 0.18))
+        krovat = pygame.Rect(int(self.SCREEN_W * 0.52), int(self.SCREEN_H * 0.35), int(self.SCREEN_W * 0.27), int(self.SCREEN_H * 0.35))
+        
+        верхняя_стена = pygame.Rect(0, 0, self.SCREEN_W, int(self.SCREEN_H * 0.28))
+        нижняя_стена = pygame.Rect(0, int(self.SCREEN_H * 0.88), self.SCREEN_W, int(self.SCREEN_H * 0.12))
+        левая_стена = pygame.Rect(0, 0, int(self.SCREEN_W * 0.14), int(self.SCREEN_H))
+        правая_стена = pygame.Rect(int(self.SCREEN_W * 0.79), 0, int(self.SCREEN_W * 0.21), int(self.SCREEN_H * 0.88))
 
-        self.dialogue_sys = DialogueManager(self.screen, self.font)
-        self.dialogue_sys.load_dialogue("dialogue/Dialogues/intro.json")
+        self.obstacles = [верхняя_стена, нижняя_стена, левая_стена, правая_стена, shkaf, stol, krovat]
+
+        # --- СПАВН АКАНЭ И ИГРОКА ---
+        p_w = int(self.SCREEN_W * 0.035)
+        p_h = int(self.SCREEN_H * 0.06)
+        self.player_rect = pygame.Rect(int(self.SCREEN_W * 0.48), int(self.SCREEN_H * 0.55), p_w, p_h)
+        self.player_speed = int(self.SCREEN_H * 0.005) + 1
+
+        # --- ХИТБОКС ДВЕРИ (Слева по центру стены + 1% внутрь комнаты) ---
+        # Считаем координату X левой стены (SCREEN_W * 0.14) + добавляем 1% ширины (SCREEN_W * 0.01)
+        door_x = int(self.SCREEN_W * 0.14) + int(self.SCREEN_W * 0.01)
+        # Центр левой стены по высоте (примерно 45% от верха экрана)
+        door_y = int(self.SCREEN_H * 0.45)
+        self.door_rect = pygame.Rect(door_x, door_y, int(self.SCREEN_W * 0.02), int(self.SCREEN_H * 0.12))
+
+        self.active_interaction = None
+
+    def interact_with_object(self):
+        if self.active_interaction == "Дверь":
+            print("Логика: Игрок выходит из комнаты!")
+            # Здесь в будущем будет переключение на коридор или улицу:
+            # self.manager.scene = "Corridor_pixel"
+            
+        elif self.active_interaction == "Кровать":
+            print("Логика: Вы осмотрели кровать.")
 
     def handle_events(self, event):
-        current_state = self.manager.game_state
         super().handle_events(event)
-
-        # Проверяем клик по ПК-кнопке "Choose" через мышку, используя контекст СЦЕНЫ (self)
-        activation_triggered = False
-        if event.type == pygame.MOUSEBUTTONDOWN and config.is_mobile:
-            if hasattr(self, "btn"):
-                activation_triggered = choose.draw_btn(self, True, event)
-
-        # СОСТОЯНИЕ: Ввод имени персонажа
-        if current_state == "input_name":
-            if activation_triggered:
-                if self.typed_name.strip() != "":
-                    self._confirm_name()
-                return
-
-            if event.type == pygame.KEYDOWN:
-                # Если нажали ENTER на клавиатуре
-                if event.key == pygame.K_RETURN:
-                    if self.typed_name.strip() != "":
-                        self._confirm_name()
-
-                # Удаление символа (работает и на ПК, и со смартфона через родную клавиатуру)
-                elif event.key == pygame.K_BACKSPACE:
-                    self.typed_name = self.typed_name[:-1]
-                else:
-                    if len(self.typed_name) < 12 and (event.unicode.isalnum() or event.unicode == " "):
-                        self.typed_name += event.unicode
-            return
-
-        # СОСТОЯНИЕ: Обычный диалог / Новелла
-        elif current_state == "dialogue":
-            if activation_triggered:
-                # Симулируем нажатие ENTER для менеджера диалогов
-                dummy_event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN)
-                trigger = self.dialogue_sys.handle_input(dummy_event)
-                activation_triggered = False
-            elif event.type == pygame.KEYDOWN:
-                trigger = self.dialogue_sys.handle_input(event)
-            else:
-                return
-
-            # Проверяем триггеры из JSON диалога
-            if trigger == "TRIGGER_INPUT_NAME":
-                self.manager.game_state = "input_name"
-            elif trigger == "BATTLE":
-                print("Переключаемся на битву Undertale!")
-            elif trigger == "TRIGGER_END_DIALOGUE" or trigger == "END_DIALOGUE":
-                print("Интро завершено! Включаем режим исследования.")
-                self.manager.game_state = "exploration"
-                self.manager.scene = "Bedroom_pixel"
-                return
-
-    def _confirm_name(self):
-        config.player_name = self.typed_name.strip()
-        self.input_mode = False
-
-        if config.player_name.lower() in ["павел", "pavel"]:
-            print("ХОРРОР ТРИГГЕР: Аканэ замерла...")
-            config.trust_level = -50
-            self.dialogue_sys.current_node = "pavel_horror"
-            show_boss_error('FATAL ERROR: Akane required admin permissions...')
-            crash(f'FATAL ERROR: ACCESS DENIED \nCLOSING AKASIDE.EXE')
-        else:
-            self.dialogue_sys.current_node = "check_pavel"
-
-        self.dialogue_sys.is_active = True
-        self.dialogue_sys.selected_choice = 0
-        self.manager.game_state = "dialogue"
+        
+        # Нажатие на E для ПК (взаимодействие) оставляем здесь
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
+            self.interact_with_object()
 
     def update(self):
         super().update()
+        
+        keys = pygame.key.get_pressed()
+        move_x, move_y = 0, 0
+        
+        # 2. Управление клавиатурой
+        if keys[pygame.K_a]: move_x = -self.player_speed
+        if keys[pygame.K_d]: move_x = self.player_speed
+        if keys[pygame.K_w]: move_y = -self.player_speed
+        if keys[pygame.K_s]: move_y = self.player_speed
 
+        # 3. Обновляем джойстик
+        self.joystick.update()
+        if config.is_mobile:
+            move_x += config.joystick_vector[0] * self.player_speed
+            move_y += config.joystick_vector[1] * self.player_speed
+
+        # 4. Твой рабочий блок коллизий (математика движения)
+        if move_x != 0:
+            self.player_rect.x += int(move_x)
+            for obs in self.obstacles:
+                if self.player_rect.colliderect(obs): self.player_rect.x -= int(move_x); break
+        
+        if move_y != 0:
+            self.player_rect.y += int(move_y)
+            for obs in self.obstacles:
+                if self.player_rect.colliderect(obs): self.player_rect.y -= int(move_y); break
+
+        # 5. ПРОВЕРКА ДИСТАНЦИИ ВЗАИМОДЕЙСТВИЯ (Перенеси этот блок сюда, если он стерся)
+        self.active_interaction = None
+        check_zone = self.player_rect.inflate(80, 80)
+        if check_zone.colliderect(self.door_rect):
+            self.active_interaction = "Дверь"
+        elif check_zone.colliderect(self.obstacles[-1]):
+            self.active_interaction = "Кровать"
+
+    def get_pos(self):
+        config.player_x, config.player_y = int(self.player_rect.center)
+
+    # --- ВОТ ОН, ТОТ САМЫЙ ОБЯЗАТЕЛЬНЫЙ МЕТОД DRAW! ТЕПЕРЬ ОН ЕСТЬ! ---
     def draw(self):
+        # 1. Рисуем фон
         self.screen.blit(self.bg, (0, 0))
 
-        box_w = self.SCREEN_W - 80
-        box_h = 160
-        box_x = 40
-        box_y = self.SCREEN_H - box_h - 40
+        # 2. Отладочная подсветка мебели и стен (твоя полупрозрачная магия)
+        # for obs in self.obstacles:
+        #     debug_surf = pygame.Surface((obs.width, obs.height), pygame.SRCALPHA)
+        #     debug_surf.fill((255, 0, 0, 80))
+        #     pygame.draw.rect(debug_surf, (255, 0, 0, 255), (0, 0, obs.width, obs.height), 3)
+        #     self.screen.blit(debug_surf, (obs.x, obs.y))
 
-        akane_config = self.dialogue_sys.get_akane_config()
-        is_spawned = (akane_config.get("spawned", False) if self.manager.game_state != "visual_novel_roam" else True)
+        # 3. ОТЛАДКА ДВЕРИ (Синий маркер)
+        # door_surf = pygame.Surface((self.door_rect.width, self.door_rect.height), pygame.SRCALPHA)
+        # door_surf.fill((0, 0, 255, 100))
+        # pygame.draw.rect(door_surf, (0, 0, 255, 255), (0, 0, self.door_rect.width, self.door_rect.height), 3)
+        # self.screen.blit(door_surf, (self.door_rect.x, self.door_rect.y))
 
-        if is_spawned:
-            current_emotion = (akane_config.get("emotion", "Normal") if self.manager.game_state != "visual_novel_roam" else "Normal")
-            base_sprite = self.akane_sprites.get(current_emotion, self.akane_sprites["Normal"])
-            final_sprite = base_sprite
+        pygame.draw.rect(self.screen, (0, 255, 255), self.player_rect)
 
-            if (self.manager.game_state != "visual_novel_roam"and akane_config.get("status") == "inactive"):
-                old_w, old_h = base_sprite.get_size()
-                new_w = int(old_w * 0.7)
-                new_h = int(old_h * 0.7)
-                final_sprite = pygame.transform.smoothscale(base_sprite, (new_w, new_h))
+        # 5. Рисуем джойстик поверх персонажей
+        self.joystick.draw(self.screen)
 
-                final_sprite = final_sprite.copy()
-                dark_filter = pygame.Surface((new_w, new_h), pygame.SRCALPHA)
-                dark_filter.fill((100, 100, 100, 0))
-                final_sprite.blit(dark_filter, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
-                final_sprite.set_alpha(200)
+        # 6. Кнопка и надпись взаимодействия
+        if self.active_interaction:
+            hint_text = f"[E] Взаимодействовать: {self.active_interaction}"
+            hint_surf = self.font.render(hint_text, True, (255, 255, 255))
+            self.screen.blit(hint_surf, (self.SCREEN_W // 2 - hint_surf.get_width() // 2, int(self.SCREEN_H * 0.75)))
+            
+            if config.is_mobile:
+                btn_w, btn_h = int(self.SCREEN_W * 0.2), int(self.SCREEN_H * 0.08)
+                btn_x, btn_y = int(self.SCREEN_W * 0.4), int(self.SCREEN_H * 0.8)
+                btn_bg = pygame.Surface((btn_w, btn_h), pygame.SRCALPHA)
+                btn_bg.fill((0, 0, 0, 200))
+                pygame.draw.rect(btn_bg, (0, 255, 255), (0, 0, btn_w, btn_h), 2)
+                btn_text = self.font.render("Действие", True, (0, 255, 255))
+                btn_bg.blit(btn_text, (btn_w // 2 - btn_text.get_width() // 2, btn_h // 2 - btn_text.get_height() // 2))
+                self.screen.blit(btn_bg, (btn_x, btn_y))
 
-            akane_x = (self.SCREEN_W // 2) - (final_sprite.get_width() // 2)
-            akane_y = box_y - final_sprite.get_height() + 120
-            self.screen.blit(final_sprite, (akane_x, akane_y))
-
-        if self.manager.game_state != "visual_novel_roam":
-            textbox = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
-            textbox.fill((0, 0, 0, 180))
-            self.screen.blit(textbox, (box_x, box_y))
-
-            if self.manager.game_state == "input_name":
-                name_surf = self.font.render("Вы:", True, (0, 255, 255))
-                self.screen.blit(name_surf, (box_x + 20, box_y - 35))
-                input_hint = self.font.render(f"Введите ваше имя: {self.typed_name}_",True,(255, 255, 255),)
-                self.screen.blit(input_hint, (box_x + 30, box_y + 40))
-                enter_hint = self.font.render("[Нажмите ENTER для подтверждения]",True,(150, 150, 150),)
-                self.screen.blit(enter_hint, (box_x + 30, box_y + 100))
-            else:
-                self.dialogue_sys.draw(box_x, box_y, box_w, box_h)
-
-        if self.manager.game_state == "visual_novel_roam":
-            self.pat_pat()
+        # 7. Самый главный финальный слой — баланс
         self.draw_balance()
-
-        if config.is_mobile:
-            choose.draw_btn(self, False, None)
