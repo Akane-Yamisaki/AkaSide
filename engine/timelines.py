@@ -61,5 +61,6 @@ def load_data(slot, manager):
             config.akane_scene = data['Akane_location']
             config.inventory = data['Inventory']
             config.current_costume = data['Costume']
+            config.player_x, config.player_y = data['Player_pos']
             manager.game_state = data['Game_state']
             manager.scene = data['Game_state']
