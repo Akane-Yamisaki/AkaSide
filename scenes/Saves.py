@@ -61,6 +61,9 @@ class Saves(Scene):
             elif event.key == pygame.K_ESCAPE:
                 self.manager.scene = "menu"
 
+            if event.key in (pygame.K_SPACE, pygame.K_RETURN):
+                self.timelines(self.choose, "load")
+
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 if self.rect.collidepoint(event.pos):
@@ -85,7 +88,7 @@ class Saves(Scene):
         elif command == "del":
             tl.delete_data(slot)
         elif command == "load":
-            pass
+            tl.load_data(slot, self.manager)
 
     def update(self):
         super().update()
@@ -153,6 +156,3 @@ class Saves(Scene):
             delete_rect = delete_txt.get_rect(center=button_rect2.center)
             self.screen.blit(delete_txt, delete_rect)
             pygame.draw.rect(self.screen, (237, 123, 144), outline_rect2, 2, 7)
-
-        if config.is_mobile:
-            self.joystick.draw(self.screen)
