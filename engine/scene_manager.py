@@ -21,6 +21,7 @@ class SceneManager:
         }
 
         self.__game_state = "menu"
+        self.prev_game_state = ""
 
         self.__current_scene = self.load_scene("menu")
 
@@ -61,6 +62,7 @@ class SceneManager:
     @scene.setter
     def scene(self, scene_name):
         if scene_name in self.scenes:
+            self.prev_game_state = self.__game_state
             self.__current_scene = self.load_scene(scene_name)
             self.__game_state = scene_name
 
