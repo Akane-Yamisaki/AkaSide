@@ -10,8 +10,7 @@ class BedRoom(Scene):
         config.is_onScreen = False
 
         self.joystick = VirtualJoystick(self.SCREEN_W, self.SCREEN_H)
-
-        # --- 1. ВОЗВРАЩАЕМ ЗАГРУЗКУ И ПИКСЕЛИЗАЦИЮ ТВОЕГО БГ ---
+        
         try:
             if config.is_mobile: raw_bg = pygame.image.load(config.mobile_path + 'assets/Images/Locations/Bedroom_pixelate.png').convert() 
             else: raw_bg = pygame.image.load('assets/Images/Locations/Bedroom_pixelate.png').convert()
@@ -20,8 +19,7 @@ class BedRoom(Scene):
             print(f"Ошибка загрузки пиксельного фона: {e}")
             self.bg = pygame.Surface((self.SCREEN_W, self.SCREEN_H))
             self.bg.fill((40, 20, 20))
-
-        # --- ТВОЯ СВЕРХТОЧНАЯ МЕБЕЛЬ И СТЕНЫ ---
+            
         shkaf = pygame.Rect(int(self.SCREEN_W * 0.258), int(self.SCREEN_H * 0.18), int(self.SCREEN_W * 0.165), int(self.SCREEN_H * 0.15))
         stol = pygame.Rect(int(self.SCREEN_W * 0.17), int(self.SCREEN_H * 0.70), int(self.SCREEN_W * 0.23), int(self.SCREEN_H * 0.18))
         krovat = pygame.Rect(int(self.SCREEN_W * 0.52), int(self.SCREEN_H * 0.35), int(self.SCREEN_W * 0.27), int(self.SCREEN_H * 0.35))
@@ -33,9 +31,11 @@ class BedRoom(Scene):
 
         self.obstacles = [верхняя_стена, нижняя_стена, левая_стена, правая_стена, shkaf, stol, krovat]
 
-        # --- СПАВН АКАНЭ И ИГРОКА ---
-        p_w = int(self.SCREEN_W * 0.035)
-        p_h = int(self.SCREEN_H * 0.06)
+        if [config.player_x, config.player_y] > [0,0]:
+            p_w, p_h = config.player_x, config.player_y
+        else:
+            p_w = int(self.SCREEN_W * 0.035)
+            p_h = int(self.SCREEN_H * 0.06)
         self.player_rect = pygame.Rect(int(self.SCREEN_W * 0.48), int(self.SCREEN_H * 0.55), p_w, p_h)
         self.player_speed = int(self.SCREEN_H * 0.005) + 1
 
@@ -51,8 +51,6 @@ class BedRoom(Scene):
     def interact_with_object(self):
         if self.active_interaction == "Дверь":
             print("Логика: Игрок выходит из комнаты!")
-            # Здесь в будущем будет переключение на коридор или улицу:
-            # self.manager.scene = "Corridor_pixel"
             
         elif self.active_interaction == "Кровать":
             print("Логика: Вы осмотрели кровать.")
@@ -61,8 +59,16 @@ class BedRoom(Scene):
         super().handle_events(event)
         
         # Нажатие на E для ПК (взаимодействие) оставляем здесь
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
-            self.interact_with_object()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_e:
+                self.interact_with_object()
+
+            elif event.key == pygame.K_ESCAPE:
+                self.manager.scene = "Saves"
+                self.get_player_coord()
+
+    def get_player_coord(self):
+        config.player_x, config.player_y = self.player_rect.center
 
     def update(self):
         super().update()
@@ -101,9 +107,10 @@ class BedRoom(Scene):
         elif check_zone.colliderect(self.obstacles[-1]):
             self.active_interaction = "Кровать"
 
-    # --- ВОТ ОН, ТОТ САМЫЙ ОБЯЗАТЕЛЬНЫЙ МЕТОД DRAW! ТЕПЕРЬ ОН ЕСТЬ! ---
+    def get_pos(self):
+        config.player_x, config.player_y = int(self.player_rect.center)
+
     def draw(self):
-        # 1. Рисуем фон
         self.screen.blit(self.bg, (0, 0))
 
         # 2. Отладочная подсветка мебели и стен (твоя полупрозрачная магия)
@@ -120,11 +127,9 @@ class BedRoom(Scene):
         # self.screen.blit(door_surf, (self.door_rect.x, self.door_rect.y))
 
         pygame.draw.rect(self.screen, (0, 255, 255), self.player_rect)
-
-        # 5. Рисуем джойстик поверх персонажей
+        
         self.joystick.draw(self.screen)
 
-        # 6. Кнопка и надпись взаимодействия
         if self.active_interaction:
             hint_text = f"[E] Взаимодействовать: {self.active_interaction}"
             hint_surf = self.font.render(hint_text, True, (255, 255, 255))
@@ -140,5 +145,4 @@ class BedRoom(Scene):
                 btn_bg.blit(btn_text, (btn_w // 2 - btn_text.get_width() // 2, btn_h // 2 - btn_text.get_height() // 2))
                 self.screen.blit(btn_bg, (btn_x, btn_y))
 
-        # 7. Самый главный финальный слой — баланс
         self.draw_balance()
