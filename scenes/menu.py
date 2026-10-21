@@ -58,8 +58,8 @@ class Menu(Scene):
                 self.manager.scene = "Saves"
                 self.manager.game_state = "saves"
             case 3:
-                # gallery mechanic
-                pass
+                self.manager.scene = "Gallery"
+                self.manager.game_state = "Gallery"
             case 4:
                 # settings logic
                 pass
