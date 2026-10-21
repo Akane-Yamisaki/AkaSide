@@ -2,6 +2,7 @@ from scenes.Akane_Bedroom_Day1 import HouseScene
 from scenes.Akane_Bedroom import BedRoom
 from scenes.menu import Menu
 from scenes.Saves import Saves
+from scenes.gallery import Gallery
 
 class SceneManager:
     def __init__(self, screen, SCREEN_W, SCREEN_H):
@@ -17,7 +18,8 @@ class SceneManager:
             'menu': (Menu, True),
             'Saves': (Saves, False),
             'Bedroom_Day1': (HouseScene, True),
-            'Bedroom_pixel': (BedRoom, True)
+            'Bedroom_pixel': (BedRoom, True),
+            'Gallery': (Gallery, False)
         }
 
         self.__game_state = "menu"
@@ -79,6 +81,3 @@ class SceneManager:
 
     def update(self):
         self.__current_scene.update()
-
-    def draw(self):
-        self.__current_scene.draw()
