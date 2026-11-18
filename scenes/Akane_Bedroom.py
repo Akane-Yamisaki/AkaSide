@@ -3,6 +3,7 @@ import config
 from scenes.BaseScene import Scene
 from scenes.pixelate_Location import pixelate_image
 from engine.joystick import VirtualJoystick
+from engine.notify import NotificationManager
 
 class BedRoom(Scene):
     def __init__(self, manager):
@@ -10,7 +11,8 @@ class BedRoom(Scene):
         config.is_onScreen = False
 
         self.joystick = VirtualJoystick(self.SCREEN_W, self.SCREEN_H)
-        
+        self.notifier = NotificationManager(app_id="AkaSide", font_size=32)
+
         try:
             if config.is_mobile: raw_bg = pygame.image.load(config.mobile_path + 'assets/Images/Locations/Bedroom_pixelate.png').convert() 
             else: raw_bg = pygame.image.load('assets/Images/Locations/Bedroom_pixelate.png').convert()
@@ -31,13 +33,14 @@ class BedRoom(Scene):
 
         self.obstacles = [верхняя_стена, нижняя_стена, левая_стена, правая_стена, shkaf, stol, krovat]
 
-        if [config.player_x, config.player_y] > [0,0]:
-            p_w, p_h = config.player_x, config.player_y
-        else:
-            p_w = int(self.SCREEN_W * 0.035)
-            p_h = int(self.SCREEN_H * 0.06)
-        self.player_rect = pygame.Rect(int(self.SCREEN_W * 0.48), int(self.SCREEN_H * 0.55), p_w, p_h)
+        p_x, p_y = int(self.SCREEN_W * 0.48), int(self.SCREEN_H * 0.55)
+        p_w = int(self.SCREEN_W * 0.035)
+        p_h = int(self.SCREEN_H * 0.06)
+        self.player_rect = pygame.Rect(p_x, p_y, p_w, p_h)
         self.player_speed = int(self.SCREEN_H * 0.005) + 1
+
+        if config.player_x > 0 or config.player_y > 0:
+            self.player_rect.center = (config.player_x, config.player_y)
 
         # --- ХИТБОКС ДВЕРИ (Слева по центру стены + 1% внутрь комнаты) ---
         # Считаем координату X левой стены (SCREEN_W * 0.14) + добавляем 1% ширины (SCREEN_W * 0.01)
@@ -51,6 +54,8 @@ class BedRoom(Scene):
     def interact_with_object(self):
         if self.active_interaction == "Дверь":
             print("Логика: Игрок выходит из комнаты!")
+            # Здесь в будущем будет переключение на коридор или улицу:
+            # self.manager.scene = "Corridor_pixel"
             
         elif self.active_interaction == "Кровать":
             print("Логика: Вы осмотрели кровать.")
@@ -58,14 +63,13 @@ class BedRoom(Scene):
     def handle_events(self, event):
         super().handle_events(event)
         
-        # Нажатие на E для ПК (взаимодействие) оставляем здесь
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e:
                 self.interact_with_object()
 
             elif event.key == pygame.K_ESCAPE:
-                self.manager.scene = "Saves"
                 self.get_player_coord()
+                self.manager.scene = "Saves"
 
     def get_player_coord(self):
         config.player_x, config.player_y = self.player_rect.center
@@ -75,8 +79,7 @@ class BedRoom(Scene):
         
         keys = pygame.key.get_pressed()
         move_x, move_y = 0, 0
-        
-        # 2. Управление клавиатурой
+
         if keys[pygame.K_a]: move_x = -self.player_speed
         if keys[pygame.K_d]: move_x = self.player_speed
         if keys[pygame.K_w]: move_y = -self.player_speed
@@ -87,8 +90,7 @@ class BedRoom(Scene):
         if config.is_mobile:
             move_x += config.joystick_vector[0] * self.player_speed
             move_y += config.joystick_vector[1] * self.player_speed
-
-        # 4. Твой рабочий блок коллизий (математика движения)
+            
         if move_x != 0:
             self.player_rect.x += int(move_x)
             for obs in self.obstacles:
@@ -99,13 +101,21 @@ class BedRoom(Scene):
             for obs in self.obstacles:
                 if self.player_rect.colliderect(obs): self.player_rect.y -= int(move_y); break
 
-        # 5. ПРОВЕРКА ДИСТАНЦИИ ВЗАИМОДЕЙСТВИЯ (Перенеси этот блок сюда, если он стерся)
         self.active_interaction = None
         check_zone = self.player_rect.inflate(80, 80)
         if check_zone.colliderect(self.door_rect):
             self.active_interaction = "Дверь"
         elif check_zone.colliderect(self.obstacles[-1]):
             self.active_interaction = "Кровать"
+        elif check_zone.colliderect(self.obstacles[-3]):
+            if "Book" in config.inventory['Items']:
+                return
+
+            config.inventory['Items'].append("Book")
+            self.notifier.send("Вы взяли книжку", duration_frames=180, win_toast=True)
+            print(config.inventory)
+
+            self.active_interaction = "Шкаф"
 
     def get_pos(self):
         config.player_x, config.player_y = int(self.player_rect.center)
@@ -127,7 +137,7 @@ class BedRoom(Scene):
         # self.screen.blit(door_surf, (self.door_rect.x, self.door_rect.y))
 
         pygame.draw.rect(self.screen, (0, 255, 255), self.player_rect)
-        
+
         self.joystick.draw(self.screen)
 
         if self.active_interaction:
@@ -145,4 +155,5 @@ class BedRoom(Scene):
                 btn_bg.blit(btn_text, (btn_w // 2 - btn_text.get_width() // 2, btn_h // 2 - btn_text.get_height() // 2))
                 self.screen.blit(btn_bg, (btn_x, btn_y))
 
+        self.notifier.draw(self.screen , pos=(self.player_rect.centerx - 60, self.player_rect.top - 30))
         self.draw_balance()
