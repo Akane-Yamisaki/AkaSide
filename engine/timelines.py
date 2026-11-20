@@ -19,9 +19,8 @@ def save_data(slot, manager):
     # for key, value in data.items():
     #     print(f"{key}: {type(value)}")
     
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    save_dir = os.path.join(base_dir, "saves")
-    
+    app_data = os.getenv("LOCALAPPDATA") or os.path.expanduser("~")
+    save_dir = os.path.join(app_data, "AkaSide/saves")
     os.makedirs(save_dir, exist_ok=True)
     
     save_path = os.path.join(save_dir, f"save{slot}.json")
@@ -42,9 +41,8 @@ def delete_data(slot):
         print(f"Сейв {slot} не найден.")
 
 def load_data(slot, manager):
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    save_dir = os.path.join(base_dir, "saves")
-        
+    app_data = os.getenv("LOCALAPPDATA") or os.path.expanduser("~")
+    save_dir = os.path.join(app_data, "AkaSide/saves")
     os.makedirs(save_dir, exist_ok=True)
         
     save_path = os.path.join(save_dir, f"save{slot}.json")
