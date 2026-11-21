@@ -26,11 +26,10 @@ def save_data(slot, manager):
     save_path = os.path.join(save_dir, f"save{slot}.json")
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(data, f)
-
-def delete_data(slot):
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    save_dir = os.path.join(base_dir, "saves")
         
+def delete_data(slot):
+    app_data = os.getenv("LOCALAPPDATA") or os.path.expanduser("~")
+    save_dir = os.path.join(app_data, "AkaSide/saves")
     os.makedirs(save_dir, exist_ok=True)
 
     save_path = os.path.join(save_dir, f"save{slot}.json")
