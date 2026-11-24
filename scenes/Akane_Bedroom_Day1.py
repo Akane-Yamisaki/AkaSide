@@ -1,6 +1,5 @@
 import config
 import pygame
-import interaction.choose as choose
 from engine.pc_warning import crash, show_boss_error
 from dialogue.Dialogue_manager import DialogueManager
 from engine.load_character_module import load_and_scale_character
@@ -13,18 +12,10 @@ class HouseScene(Scene):
         self.input_mode = False
         self.typed_name = ""
 
-        if config.is_mobile:
-            self.akane_sprites = {"Normal": load_and_scale_character(config.mobile_path + "assets/Images/Akane/Normal_2.png",int(self.SCREEN_H * 1),)
-            }
-        else:
-            self.akane_sprites = {"Normal": load_and_scale_character("assets/Images/Akane/Normal_2.png", int(self.SCREEN_H * 1))
-            }
+        self.akane_sprites = {"Normal": load_and_scale_character("assets/Images/Akane/Normal_2.png", int(self.SCREEN_H * 1))}
 
         try:
-            if config.is_mobile:
-                raw_bg = pygame.image.load(config.mobile_path + "assets/Images/Locations/Akane_bedroom.png").convert()
-            else:
-                raw_bg = pygame.image.load("assets/Images/Locations/Akane_bedroom.png").convert()
+            raw_bg = pygame.image.load("assets/Images/Locations/Akane_bedroom.png").convert()
             self.bg = pygame.transform.smoothscale(raw_bg, (self.SCREEN_W, self.SCREEN_H))
         except Exception as e:
             print(f"Ошибка загрузки фона: {e}")
@@ -35,17 +26,18 @@ class HouseScene(Scene):
 
         self.dialogue_sys = DialogueManager(self.screen, self.font)
         self.dialogue_sys.load_dialogue("dialogue/Dialogues/intro.json")
+        config.new_game = True
 
     def handle_events(self, event):
         current_state = self.manager.game_state
         super().handle_events(event)
 
-        # Проверяем клик по ПК-кнопке "Choose" через мышку, используя контекст СЦЕНЫ (self)
         activation_triggered = False
-        if event.type == pygame.MOUSEBUTTONDOWN and config.is_mobile:
-            if hasattr(self, "btn"):
-                activation_triggered = choose.draw_btn(self, True, event)
 
+        if event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_KP_ENTER, pygame.K_RETURN):
+                activation_triggered = True
+                
         # СОСТОЯНИЕ: Ввод имени персонажа
         if current_state == "input_name":
             if activation_triggered:
@@ -160,6 +152,3 @@ class HouseScene(Scene):
         if self.manager.game_state == "visual_novel_roam":
             self.pat_pat()
         self.draw_balance()
-
-        if config.is_mobile:
-            choose.draw_btn(self, False, None)
