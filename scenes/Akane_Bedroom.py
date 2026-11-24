@@ -2,7 +2,6 @@ import pygame
 import config
 from scenes.BaseScene import Scene
 from scenes.pixelate_Location import pixelate_image
-from engine.joystick import VirtualJoystick
 from engine.notify import NotificationManager
 
 class BedRoom(Scene):
@@ -10,7 +9,6 @@ class BedRoom(Scene):
         super().__init__(manager)
         config.is_onScreen = False
 
-        self.joystick = VirtualJoystick(self.SCREEN_W, self.SCREEN_H)
         self.notifier = NotificationManager(app_id="AkaSide", font_size=32)
 
         self.Transition = False
@@ -18,8 +16,7 @@ class BedRoom(Scene):
         self.day_swapped = False
 
         try:
-            if config.is_mobile: raw_bg = pygame.image.load(config.mobile_path + 'assets/Images/Locations/Bedroom_pixelate.png').convert() 
-            else: raw_bg = pygame.image.load('assets/Images/Locations/Bedroom_pixelate.png').convert()
+            raw_bg = pygame.image.load('assets/Images/Locations/Bedroom_pixelate.png').convert()
             self.bg = pixelate_image(raw_bg, self.SCREEN_W, self.SCREEN_H, 6)
         except Exception as e:
             print(f"Ошибка загрузки пиксельного фона: {e}")
@@ -68,8 +65,7 @@ class BedRoom(Scene):
 
     def handle_events(self, event):
         super().handle_events(event)
-        
-        # Нажатие на E для ПК (взаимодействие) оставляем здесь
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e:
                 self.interact_with_object()
@@ -86,17 +82,13 @@ class BedRoom(Scene):
         
         keys = pygame.key.get_pressed()
         move_x, move_y = 0, 0
-
+        
         if keys[pygame.K_a]: move_x = -self.player_speed
         if keys[pygame.K_d]: move_x = self.player_speed
         if keys[pygame.K_w]: move_y = -self.player_speed
         if keys[pygame.K_s]: move_y = self.player_speed
 
-        self.joystick.update()
-        if config.is_mobile:
-            move_x += config.joystick_vector[0] * self.player_speed
-            move_y += config.joystick_vector[1] * self.player_speed
-
+        # 4. Твой рабочий блок коллизий (математика движения)
         if move_x != 0:
             self.player_rect.x += int(move_x)
             for obs in self.obstacles:
@@ -144,22 +136,11 @@ class BedRoom(Scene):
         # 1. ВСЕГДА сначала рисуем саму сцену (фон, игрока и интерфейс)
         self.screen.blit(self.bg, (0, 0))
         pygame.draw.rect(self.screen, (0, 255, 255), self.player_rect)
-        self.joystick.draw(self.screen)
 
         if self.active_interaction and not self.Transition:
             hint_text = f"[E] Взаимодействовать: {self.active_interaction}"
             hint_surf = self.font.render(hint_text, True, (255, 255, 255))
             self.screen.blit(hint_surf, (self.SCREEN_W // 2 - hint_surf.get_width() // 2, int(self.SCREEN_H * 0.75)))
-            
-            if config.is_mobile:
-                btn_w, btn_h = int(self.SCREEN_W * 0.2), int(self.SCREEN_H * 0.08)
-                btn_x, btn_y = int(self.SCREEN_W * 0.4), int(self.SCREEN_H * 0.8)
-                btn_bg = pygame.Surface((btn_w, btn_h), pygame.SRCALPHA)
-                btn_bg.fill((0, 0, 0, 200))
-                pygame.draw.rect(btn_bg, (0, 255, 255), (0, 0, btn_w, btn_h), 2)
-                btn_text = self.font.render("Действие", True, (0, 255, 255))
-                btn_bg.blit(btn_text, (btn_w // 2 - btn_text.get_width() // 2, btn_h // 2 - btn_text.get_height() // 2))
-                self.screen.blit(btn_bg, (btn_x, btn_y))
 
         self.notifier.draw(self.screen, pos=(self.player_rect.centerx - 60, self.player_rect.top - 30))
         self.draw_balance()
