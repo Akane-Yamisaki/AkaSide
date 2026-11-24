@@ -22,6 +22,8 @@ class SceneManager:
             'Gallery': (Gallery, False)
         }
 
+        self.blacklist = ['menu', 'Saves', 'Gallery']
+
         self.__game_state = "menu"
         self.prev_game_state = ""
 
@@ -64,7 +66,7 @@ class SceneManager:
     @scene.setter
     def scene(self, scene_name):
         if scene_name in self.scenes:
-            self.prev_game_state = self.__game_state
+            self.prev_game_state = self.__game_state if self.game_state not in self.blacklist else self.prev_game_state
             self.__current_scene = self.load_scene(scene_name)
             self.__game_state = scene_name
 
@@ -81,3 +83,6 @@ class SceneManager:
 
     def update(self):
         self.__current_scene.update()
+
+    def draw(self):
+        self.__current_scene.draw()
