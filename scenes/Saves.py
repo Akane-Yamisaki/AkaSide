@@ -1,15 +1,12 @@
-import config, pygame
-from engine.joystick import VirtualJoystick
+import pygame
 from engine import timelines as tl
 from scenes.BaseScene import Scene
 
 class Saves(Scene):
     def __init__(self, manager):
         super().__init__(manager)
-        self.joystick = VirtualJoystick(self.SCREEN_W, self.SCREEN_H)
         self.choose = 1
         self.max_saves = 3
-        self.joy_ready = True
 
         self.font = pygame.font.Font(None, self.SCREEN_H // 15)
         self.spacing = self.SCREEN_H // 12
@@ -46,10 +43,7 @@ class Saves(Scene):
 
     def load_background(self):
         try:
-            if config.is_mobile:
-                bg = pygame.image.load(config.mobile_path + "assets/Images/Saves_BG.png").convert()
-            else:
-                bg = pygame.image.load("assets/Images/Saves_BG.png").convert()
+            bg = pygame.image.load("assets/Images/Saves_BG.png").convert()
 
             return pygame.transform.smoothscale(bg,(self.SCREEN_W, self.SCREEN_H))
         
@@ -58,8 +52,6 @@ class Saves(Scene):
             return pygame.Surface((self.SCREEN_W, self.SCREEN_H))
 
     def handle_events(self, event):
-        self.joystick.handle_events(event)
-
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_DOWN, pygame.K_s):
                 self.choose = self.choose + 1 if self.choose < self.max_saves else 1
@@ -109,18 +101,6 @@ class Saves(Scene):
 
     def update(self):
         super().update()
-        self.joystick.update()
-
-        if config.joystick_vector[1] > 0.5 and self.joy_ready:
-            self.choose = self.choose + 1 if self.choose < self.max_saves else 1
-            self.joy_ready = False
-
-        elif config.joystick_vector[1] < -0.5 and self.joy_ready:
-            self.choose = self.choose - 1 if self.choose > 1 else self.max_saves
-            self.joy_ready = False
-
-        elif abs(config.joystick_vector[1]) < 0.2:
-            self.joy_ready = True
 
     def draw(self):
         self.screen.blit(self.bg, (0, 0))
@@ -181,6 +161,3 @@ class Saves(Scene):
             delete_rect = delete_txt.get_rect(center=button_rect2.center)
             self.screen.blit(delete_txt, delete_rect)
             pygame.draw.rect(self.screen, (237, 123, 144), outline_rect2, 2, 7)
-    
-        if config.is_mobile:
-            self.joystick.draw(self.screen)
