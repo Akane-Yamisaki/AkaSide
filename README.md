@@ -10,7 +10,6 @@ AkaSide is a psychological horror game inspired by visual novels and classic RPG
 - Boss battles
 - Multiple endings
 - Original soundtrack (planned)
-- Apk file (planned)
 
 ## Technologies
 
