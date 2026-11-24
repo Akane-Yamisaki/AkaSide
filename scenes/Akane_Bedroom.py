@@ -13,7 +13,10 @@ class BedRoom(Scene):
         self.joystick = VirtualJoystick(self.SCREEN_W, self.SCREEN_H)
         self.notifier = NotificationManager(app_id="AkaSide", font_size=32)
 
-        # --- 1. ВОЗВРАЩАЕМ ЗАГРУЗКУ И ПИКСЕЛИЗАЦИЮ ТВОЕГО БГ ---
+        self.Transition = False
+        self.transition_start = 0
+        self.day_swapped = False
+
         try:
             if config.is_mobile: raw_bg = pygame.image.load(config.mobile_path + 'assets/Images/Locations/Bedroom_pixelate.png').convert() 
             else: raw_bg = pygame.image.load('assets/Images/Locations/Bedroom_pixelate.png').convert()
@@ -23,7 +26,6 @@ class BedRoom(Scene):
             self.bg = pygame.Surface((self.SCREEN_W, self.SCREEN_H))
             self.bg.fill((40, 20, 20))
 
-        # --- ТВОЯ СВЕРХТОЧНАЯ МЕБЕЛЬ И СТЕНЫ ---
         shkaf = pygame.Rect(int(self.SCREEN_W * 0.258), int(self.SCREEN_H * 0.18), int(self.SCREEN_W * 0.165), int(self.SCREEN_H * 0.15))
         stol = pygame.Rect(int(self.SCREEN_W * 0.17), int(self.SCREEN_H * 0.70), int(self.SCREEN_W * 0.23), int(self.SCREEN_H * 0.18))
         krovat = pygame.Rect(int(self.SCREEN_W * 0.52), int(self.SCREEN_H * 0.35), int(self.SCREEN_W * 0.27), int(self.SCREEN_H * 0.35))
@@ -35,7 +37,6 @@ class BedRoom(Scene):
 
         self.obstacles = [верхняя_стена, нижняя_стена, левая_стена, правая_стена, shkaf, stol, krovat]
 
-        # --- СПАВН АКАНЭ И ИГРОКА ---
         p_x, p_y = int(self.SCREEN_W * 0.48), int(self.SCREEN_H * 0.55)
         p_w = int(self.SCREEN_W * 0.035)
         p_h = int(self.SCREEN_H * 0.06)
@@ -61,7 +62,9 @@ class BedRoom(Scene):
             # self.manager.scene = "Corridor_pixel"
             
         elif self.active_interaction == "Кровать":
-            print("Логика: Вы осмотрели кровать.")
+            if not config.can_sleep: return
+            self.Transition = True
+            self.transition_start = pygame.time.get_ticks()
 
     def handle_events(self, event):
         super().handle_events(event)
@@ -83,20 +86,17 @@ class BedRoom(Scene):
         
         keys = pygame.key.get_pressed()
         move_x, move_y = 0, 0
-        
-        # 2. Управление клавиатурой
+
         if keys[pygame.K_a]: move_x = -self.player_speed
         if keys[pygame.K_d]: move_x = self.player_speed
         if keys[pygame.K_w]: move_y = -self.player_speed
         if keys[pygame.K_s]: move_y = self.player_speed
 
-        # 3. Обновляем джойстик
         self.joystick.update()
         if config.is_mobile:
             move_x += config.joystick_vector[0] * self.player_speed
             move_y += config.joystick_vector[1] * self.player_speed
 
-        # 4. Твой рабочий блок коллизий (математика движения)
         if move_x != 0:
             self.player_rect.x += int(move_x)
             for obs in self.obstacles:
@@ -107,7 +107,6 @@ class BedRoom(Scene):
             for obs in self.obstacles:
                 if self.player_rect.colliderect(obs): self.player_rect.y -= int(move_y); break
 
-        # 5. ПРОВЕРКА ДИСТАНЦИИ ВЗАИМОДЕЙСТВИЯ (Перенеси этот блок сюда, если он стерся)
         self.active_interaction = None
         check_zone = self.player_rect.inflate(80, 80)
         if check_zone.colliderect(self.door_rect):
@@ -127,10 +126,7 @@ class BedRoom(Scene):
     def get_pos(self):
         config.player_x, config.player_y = int(self.player_rect.center)
 
-    # --- ВОТ ОН, ТОТ САМЫЙ ОБЯЗАТЕЛЬНЫЙ МЕТОД DRAW! ТЕПЕРЬ ОН ЕСТЬ! ---
     def draw(self):
-        # 1. Рисуем фон
-        self.screen.blit(self.bg, (0, 0))
 
         # 2. Отладочная подсветка мебели и стен (твоя полупрозрачная магия)
         # for obs in self.obstacles:
@@ -145,13 +141,12 @@ class BedRoom(Scene):
         # pygame.draw.rect(door_surf, (0, 0, 255, 255), (0, 0, self.door_rect.width, self.door_rect.height), 3)
         # self.screen.blit(door_surf, (self.door_rect.x, self.door_rect.y))
 
+        # 1. ВСЕГДА сначала рисуем саму сцену (фон, игрока и интерфейс)
+        self.screen.blit(self.bg, (0, 0))
         pygame.draw.rect(self.screen, (0, 255, 255), self.player_rect)
-
-        # 5. Рисуем джойстик поверх персонажей
         self.joystick.draw(self.screen)
 
-        # 6. Кнопка и надпись взаимодействия
-        if self.active_interaction:
+        if self.active_interaction and not self.Transition:
             hint_text = f"[E] Взаимодействовать: {self.active_interaction}"
             hint_surf = self.font.render(hint_text, True, (255, 255, 255))
             self.screen.blit(hint_surf, (self.SCREEN_W // 2 - hint_surf.get_width() // 2, int(self.SCREEN_H * 0.75)))
@@ -166,6 +161,53 @@ class BedRoom(Scene):
                 btn_bg.blit(btn_text, (btn_w // 2 - btn_text.get_width() // 2, btn_h // 2 - btn_text.get_height() // 2))
                 self.screen.blit(btn_bg, (btn_x, btn_y))
 
-        self.notifier.draw(self.screen , pos=(self.player_rect.centerx - 60, self.player_rect.top - 30))
-        # 7. Самый главный финальный слой — баланс
+        self.notifier.draw(self.screen, pos=(self.player_rect.centerx - 60, self.player_rect.top - 30))
         self.draw_balance()
+
+        # 2. ПОВЕРХ уже нарисованной сцены накладываем плавное затемнение и свап дня
+        if self.Transition:
+            elapsed = pygame.time.get_ticks() - self.transition_start
+            
+            if elapsed < 1000:
+                alpha = int((elapsed / 1000) * 255)
+            elif elapsed < 3000:
+                alpha = 255
+            elif elapsed < 4000:
+                alpha = max(0, 255 - int(((elapsed - 3000) / 1000) * 255))
+            else:
+                self.Transition = False
+                self.day_swapped = False
+                return
+
+            bg = pygame.Surface((self.SCREEN_W, self.SCREEN_H)).convert()
+            bg.fill((0, 0, 0))
+            bg.set_alpha(alpha)
+            self.screen.blit(bg, (0, 0))
+
+            if 1000 <= elapsed <= 3000:
+                label_surf = self.font.render("День: ", True, (255, 255, 255))
+                
+                if elapsed < 1500:
+                    text_alpha = 255
+                elif elapsed < 2000:
+                    text_alpha = int(((2000 - elapsed) / 500) * 255)
+                elif elapsed < 2500:
+                    text_alpha = int(((elapsed - 2000) / 500) * 255)
+                else:
+                    text_alpha = 255
+
+                if elapsed < 2000:
+                    day_surf = self.font.render(str(config.current_day), True, (255, 215, 0))
+                else:
+                    if not self.day_swapped:
+                        config.current_day += 1
+                        self.day_swapped = True
+                    color = (255, 215, 0) if config.current_day < 7 else (171, 2, 21)
+                    day_surf = self.font.render(str(config.current_day), True, color)
+
+                day_surf.set_alpha(text_alpha)
+
+                x = self.SCREEN_W // 2 - (label_surf.get_width() + day_surf.get_width()) // 2
+                y = self.SCREEN_H // 2
+                self.screen.blit(label_surf, (x, y))
+                self.screen.blit(day_surf, (x + label_surf.get_width(), y))
