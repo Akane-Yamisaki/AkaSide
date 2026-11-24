@@ -13,7 +13,8 @@ def save_data(slot, manager):
         "Inventory": config.inventory,
         "Costume": config.current_costume,
         "Game_state": manager.prev_game_state,
-        "Player_pos": (config.player_x, config.player_y)
+        "Player_pos": (config.player_x, config.player_y),
+        "Can_sleep": config.can_sleep
     }
 
     # for key, value in data.items():
@@ -26,7 +27,7 @@ def save_data(slot, manager):
     save_path = os.path.join(save_dir, f"save{slot}.json")
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(data, f)
-        
+
 def delete_data(slot):
     app_data = os.getenv("LOCALAPPDATA") or os.path.expanduser("~")
     save_dir = os.path.join(app_data, "AkaSide/saves")
@@ -59,5 +60,6 @@ def load_data(slot, manager):
             config.inventory = data['Inventory']
             config.current_costume = data['Costume']
             config.player_x, config.player_y = data['Player_pos']
+            config.can_sleep = data['Can_sleep']
             manager.game_state = data['Game_state']
             manager.scene = data['Game_state']
