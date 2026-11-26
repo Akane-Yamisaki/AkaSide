@@ -32,15 +32,6 @@ class Saves(Scene):
 
         self.save_x = int(self.saves_x + self.SCREEN_W * 0.15)
 
-        pygame.mixer.init()
-        pygame.mixer.music.load('sound/Toby_Fox-41_Chill_OST_Undertale.mp3') # TY SO MUCH TOBY FOX❤️
-        pygame.mixer.music.set_volume(0)
-        pygame.mixer.music.play(loops=-1)
-        self.fade_start_time = pygame.time.get_ticks()
-        self.fade_duration = 3000
-        self.target_volume = 0.65
-        self.is_fading_in = True  
-
     def load_background(self):
         try:
             bg = pygame.image.load("assets/Images/Saves_BG.png").convert()
@@ -50,6 +41,9 @@ class Saves(Scene):
         except (FileNotFoundError, pygame.error) as e:
             print(f"Error loading Saves background: {e}")
             return pygame.Surface((self.SCREEN_W, self.SCREEN_H))
+
+    def on_enter(self):
+        self.manager.play_music("sound/Toby_Fox-41_Chill_OST_Undertale.mp3") # TYSM Toby Fox❤️
 
     def handle_events(self, event):
         if event.type == pygame.KEYDOWN:
@@ -61,22 +55,14 @@ class Saves(Scene):
 
             elif event.key == pygame.K_ESCAPE:
                 self.manager.scene = "menu"
-                self.is_fading_in = False
-                pygame.mixer.music.fadeout(500)
-
 
             if event.key in (pygame.K_SPACE, pygame.K_RETURN):
                 self.timelines(self.choose, "load")
-                pygame.mixer.music.stop()
-                self.is_fading_in = False
-
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 if self.rect.collidepoint(event.pos):
                     self.manager.scene = "menu"
-                    self.is_fading_in = False
-                    pygame.mixer.music.fadeout(500)
                     return
 
                 for slot in range(1, self.max_saves + 1):
@@ -104,14 +90,6 @@ class Saves(Scene):
 
     def draw(self):
         self.screen.blit(self.bg, (0, 0))
-        if self.is_fading_in:
-            elapsed = pygame.time.get_ticks() - self.fade_start_time
-            progress = min(1.0, elapsed / self.fade_duration)
-            pygame.mixer.music.set_volume(self.target_volume * progress)
-                    
-            if progress >= 1.0:
-                self.is_fading_in = False
-
         mouse_pos = pygame.mouse.get_pos()
 
         self.circle_surface.fill((0, 0, 0, 0)) 
