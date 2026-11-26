@@ -50,14 +50,12 @@ def load_data(slot, manager):
             with open(save_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
     except json.JSONDecodeError:
-        # Игрок сломал синтаксис JSON (забыл запятую или кавычку)
         trigger_hacker_event(manager, reason="broken_json")
         return
 
     if os.path.isfile(save_path):
         saved_sig = data.get("signature", "")
         if saved_sig != make_signature(data):
-            # Игрок изменил любое значение в файле!
             trigger_hacker_event(manager, reason="tampered_data", tampered_data=data, slot=slot)
             return
     
