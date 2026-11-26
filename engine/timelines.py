@@ -17,8 +17,7 @@ def save_data(slot, manager):
         "Can_sleep": config.can_sleep
     }
 
-    # for key, value in data.items():
-    #     print(f"{key}: {type(value)}")
+    data["signature"] = make_signature(data)
     
     app_data = os.getenv("LOCALAPPDATA") or os.path.expanduser("~")
     save_dir = os.path.join(app_data, "AkaSide/saves")
@@ -26,7 +25,7 @@ def save_data(slot, manager):
     
     save_path = os.path.join(save_dir, f"save{slot}.json")
     with open(save_path, "w", encoding="utf-8") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
 def delete_data(slot):
     app_data = os.getenv("LOCALAPPDATA") or os.path.expanduser("~")
@@ -46,6 +45,22 @@ def load_data(slot, manager):
     os.makedirs(save_dir, exist_ok=True)
         
     save_path = os.path.join(save_dir, f"save{slot}.json")
+    try:
+        if os.path.isfile(save_path):
+            with open(save_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+    except json.JSONDecodeError:
+        # Игрок сломал синтаксис JSON (забыл запятую или кавычку)
+        trigger_hacker_event(manager, reason="broken_json")
+        return
+
+    if os.path.isfile(save_path):
+        saved_sig = data.get("signature", "")
+        if saved_sig != make_signature(data):
+            # Игрок изменил любое значение в файле!
+            trigger_hacker_event(manager, reason="tampered_data", tampered_data=data, slot=slot)
+            return
+    
     if os.path.isfile(save_path):
         with open(save_path, "r", encoding="utf-8") as f:
             data = json.load(f)
