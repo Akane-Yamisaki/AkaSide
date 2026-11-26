@@ -13,6 +13,15 @@ if IS_WINDOWS:
 else:
     HAS_WINOTIFY = False
 
+def send_win_toast(text, win_title, app_id="AkaSide"):
+    """Отдельная функция для отправки системного уведомления Windows."""
+    if HAS_WINOTIFY:
+        try:
+            toast = Notification(app_id=app_id, title=win_title, msg=text, duration="short")
+            toast.set_audio(audio.Default, loop=False)
+            toast.show()
+        except Exception:
+            pass
 
 class NotificationManager:
     def __init__(self, app_id="AkaSide", font_size=28):
