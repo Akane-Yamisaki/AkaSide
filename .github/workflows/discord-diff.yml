@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-
+      - new-version
 jobs:
   notify:
     runs-on: ubuntu-latest
