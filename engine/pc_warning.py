@@ -1,15 +1,22 @@
 import ctypes, pygame, time, sys
-import config
+
+IS_WINDOWS = sys.platform == "win32"
+
+if IS_WINDOWS:
+    try:
+        from winotify import Notification, audio
+        HAS_WINOTIFY = True
+    except ImportError:
+        HAS_WINOTIFY = False
+else:
+    HAS_WINOTIFY = False
 
 def show_boss_error(context):
-    if config.is_mobile == True: return
-    ctypes.windll.user32.MessageBoxW(0, context, "AKANE.EXE", 0x10)
+    if IS_WINDOWS:
+        ctypes.windll.user32.MessageBoxW(0, context, "AKANE.EXE", 0x10)
 
 def crash(context):
-    if config.is_mobile == True: 
-        pygame.quit()  # Сначала очищаем ресурсы Pygame
-        sys.exit(0)
-    else:
+    if IS_WINDOWS:
         ctypes.windll.user32.MessageBoxW(0, context, "System", 0x10)
         time.sleep(2)
         pygame.quit()
