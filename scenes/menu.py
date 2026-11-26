@@ -45,19 +45,19 @@ class Menu(Scene):
             case 1:
                 if config.new_game == True: return
                 self.manager.scene = "Bedroom_Day1"
-                self.manager.game_state = "dialogue"
             case 2:
                 self.manager.scene = "Saves"
-                self.manager.game_state = "saves"
             case 3:
                 self.manager.scene = "Gallery"
-                self.manager.game_state = "Gallery"
             case 4:
                 # settings logic
                 pass
             case 5:
                 pygame.quit()
                 sys.exit()
+
+    def on_enter(self):
+        self.manager.play_music('sound/Akane-menu.mp3')
 
     def handle_events(self, event):
         action_triggered = False
