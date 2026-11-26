@@ -86,8 +86,7 @@ class HouseScene(Scene):
         config.player_name = self.typed_name.strip()
         self.input_mode = False
 
-        if config.player_name.lower() in ["павел", "pavel"]:
-            print("ХОРРОР ТРИГГЕР: Аканэ замерла...")
+        if config.player_name.strip().lower() in ["павел", "pavel"]:
             config.trust_level = -50
             self.dialogue_sys.current_node = "pavel_horror"
             show_boss_error('FATAL ERROR: Akane required admin permissions...')
