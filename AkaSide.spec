@@ -1,6 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 a = Analysis(
     ['main.py'],
     pathex=[],
@@ -12,6 +11,8 @@ a = Analysis(
         ('battle', 'battle'),
         ('dialogue', 'dialogue'),
         ('interaction', 'interaction'),
+        ('DLC', 'DLC'),
+        ('sound', 'sound'),
         ('config.py', '.')
     ],
     hiddenimports=[],
