@@ -50,14 +50,7 @@ def load_data(slot, manager):
             with open(save_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
     except json.JSONDecodeError:
-        trigger_hacker_event(manager, reason="broken_json")
         return
-
-    if os.path.isfile(save_path):
-        saved_sig = data.get("signature", "")
-        if saved_sig != make_signature(data):
-            trigger_hacker_event(manager, reason="tampered_data", tampered_data=data, slot=slot)
-            return
     
     if os.path.isfile(save_path):
         with open(save_path, "r", encoding="utf-8") as f:
@@ -76,3 +69,6 @@ def load_data(slot, manager):
             config.can_sleep = data['Can_sleep']
             manager.game_state = data['Game_state']
             manager.scene = data['Game_state']
+
+    if hasattr(manager.scene, "reload_coordinates"):
+        manager.scene.reload_coordinates()
