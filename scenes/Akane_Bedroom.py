@@ -52,6 +52,12 @@ class BedRoom(Scene):
 
         self.active_interaction = None
 
+    def on_enter(self):
+        self.manager.play_music('sound/Akane-House.mp3')
+
+    def reload_coordinates(self):
+        self.player_rect.center = config.player_x, config.player_y
+
     def interact_with_object(self):
         if self.active_interaction == "Дверь":
             print("Логика: Игрок выходит из комнаты!")
